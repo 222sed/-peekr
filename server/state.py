@@ -9,7 +9,7 @@ _store = {
     "prev_box": None,
 }
 
-_state_buffer: deque = deque(maxlen=6)
+_state_buffer: deque = deque(maxlen=2)
 
 
 def get_state() -> dict:
