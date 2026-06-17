@@ -1,0 +1,16 @@
+{
+  "pages": ["pages/capture/capture"],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#111111",
+    "navigationBarTitleText": "Peekr 采集端",
+    "navigationBarTextStyle": "white"
+  },
+  "permission": {
+    "scope.camera": {
+      "desc": "需要摄像头权限以拍摄猫咪状态"
+    }
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

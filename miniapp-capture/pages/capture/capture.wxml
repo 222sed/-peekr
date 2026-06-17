@@ -1,0 +1,32 @@
+<view class="page">
+
+  <camera class="camera" device-position="back" flash="off" wx:if="{{running}}"></camera>
+  <view class="camera-placeholder" wx:else>
+    <text class="placeholder-text">摄像头未启动</text>
+  </view>
+
+  <view class="overlay">
+
+    <view class="status-row">
+      <view class="status-dot {{statusType}}"></view>
+      <text class="status-text">{{statusText}}</text>
+    </view>
+
+    <view class="meta-row">
+      <text class="meta-item">已上传 {{frameCount}} 帧</text>
+      <text class="meta-item">每 5 秒一帧</text>
+    </view>
+
+    <view class="battery-warn" wx:if="{{lowBattery}}">
+      ⚠️ 电量低于 20%，请插电后使用
+    </view>
+
+    <view class="btn-row">
+      <view class="btn {{running ? 'btn-stop' : 'btn-start'}}" bindtap="onStartStop">
+        {{running ? '停止监控' : '开始监控'}}
+      </view>
+    </view>
+
+  </view>
+
+</view>

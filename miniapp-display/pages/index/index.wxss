@@ -1,0 +1,251 @@
+/* ── 色彩变量 ── */
+page {
+  --bg: #F5F0E8;
+  --card: #FFFFFF;
+  --border: #E8E2D8;
+  --text: #2C2C2C;
+  --text-muted: #9A9A9A;
+  --text-light: #C4BDB0;
+  --water: #4A90D9;
+  --food: #E8943A;
+  --sleep: #9B7EC8;
+  --play: #4CAF7D;
+}
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 32rpx 28rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+/* ── 顶部胶囊 ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 40rpx;
+  border: 1.5rpx solid;
+  background: var(--card);
+}
+
+.pill-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.pill-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.last-updated {
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+/* ── 主体 ── */
+.body-row {
+  display: flex;
+  gap: 24rpx;
+  align-items: flex-start;
+}
+
+/* 猫咪列 */
+.cat-col {
+  width: 200rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cat-wrap {
+  width: 180rpx;
+  height: 180rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-img {
+  width: 180rpx;
+  height: 180rpx;
+}
+
+/* 状态动画 */
+.cat-sleep  { animation: breathe 3.5s ease-in-out infinite; }
+.cat-play   { animation: bodySway 1s ease-in-out infinite; }
+.cat-food   { animation: munchBob 0.45s ease-in-out infinite; }
+.cat-dream  { animation: dreamFloat 3.8s ease-in-out infinite; }
+
+.cat-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-top: 8rpx;
+  color: var(--text);
+}
+
+.cat-status {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 6rpx;
+}
+
+.status-dot-sm {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.cat-status-text {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.cat-desc {
+  font-size: 20rpx;
+  color: var(--text-light);
+  text-align: center;
+  margin-top: 6rpx;
+  line-height: 1.5;
+}
+
+/* 指标列 */
+.metrics-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-top: 8rpx;
+}
+
+.metric-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.metric-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-icon {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.metric-val {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.metric-bar {
+  height: 10rpx;
+  background: var(--border);
+  border-radius: 6rpx;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  transition: width 0.6s ease;
+}
+.metric-fill.water { background: var(--water); }
+.metric-fill.food  { background: var(--food);  }
+.metric-fill.sleep { background: var(--sleep); }
+.metric-fill.play  { background: var(--play);  }
+
+/* ── 时间轴 ── */
+.timeline-wrap {
+  background: var(--card);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid var(--border);
+}
+
+.tl-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
+}
+
+.tl-title {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.tl-range {
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+.tl-track {
+  height: 14rpx;
+  background: var(--border);
+  border-radius: 8rpx;
+  overflow: hidden;
+  display: flex;
+}
+
+.tl-seg { height: 100%; }
+.tl-sleep { background: var(--sleep); }
+.tl-play  { background: var(--play);  }
+.tl-food  { background: var(--food);  }
+.tl-idle  { background: var(--border); }
+
+/* ── 离线横幅 ── */
+.offline-banner {
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-muted);
+  background: var(--card);
+  border: 1rpx solid var(--border);
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+/* ── 动画 ── */
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50%       { transform: scaleY(1.05); }
+}
+
+@keyframes bodySway {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(1.5deg); }
+  75%       { transform: rotate(-1.5deg); }
+}
+
+@keyframes munchBob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(7rpx); }
+}
+
+@keyframes dreamFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10rpx); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}

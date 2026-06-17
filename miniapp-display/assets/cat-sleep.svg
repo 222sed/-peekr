@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- tail -->
+  <path d="M38 108 Q18 88 24 66 Q30 48 46 54 Q56 58 50 70 Q44 80 46 92" stroke="#A8A8A8" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M38 108 Q18 88 24 66 Q30 48 46 54 Q56 58 50 70 Q44 80 46 92" stroke="#6C6C6C" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="6 6" opacity=".5"/>
+  <!-- body -->
+  <ellipse cx="78" cy="100" rx="44" ry="26" fill="#A8A8A8"/>
+  <ellipse cx="78" cy="104" rx="28" ry="16" fill="#D8D8D8"/>
+  <path d="M50 92 Q64 86 78 92" stroke="#6C6C6C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M56 104 Q70 98 84 104" stroke="#6C6C6C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+  <!-- head -->
+  <circle cx="98" cy="80" r="24" fill="#A8A8A8"/>
+  <!-- ears -->
+  <polygon points="86,62 80,46 94,60" fill="#A8A8A8"/>
+  <polygon points="86,61 81,48 93,60" fill="#F0C0C0"/>
+  <polygon points="106,58 102,42 116,56" fill="#A8A8A8"/>
+  <polygon points="106,57 103,44 114,56" fill="#F0C0C0"/>
+  <!-- brow marks -->
+  <path d="M90 68 Q94 64 98 68" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <path d="M98 66 Q102 62 106 66" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <!-- closed eyes (sleeping arcs) -->
+  <path d="M88 80 Q92 75 96 80" stroke="#5a5a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M100 78 Q104 73 108 78" stroke="#5a5a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- nose -->
+  <path d="M97 86 L94 90 L100 90 Z" fill="#E8A0A0"/>
+  <path d="M94 90 Q97 93 100 90" stroke="#D08080" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- whiskers -->
+  <line x1="88" y1="87" x2="70" y2="83" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="88" y1="90" x2="70" y2="91" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="108" y1="87" x2="126" y2="83" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="108" y1="90" x2="126" y2="91" stroke="#C8C8C8" stroke-width="1.1"/>
+  <!-- zzz -->
+  <text x="118" y="62" font-size="14" fill="#9B7EC8" font-weight="700" font-family="Georgia,serif">z</text>
+  <text x="126" y="44" font-size="18" fill="#9B7EC8" font-weight="700" font-family="Georgia,serif">z</text>
+  <text x="130" y="24" font-size="12" fill="#9B7EC8" font-weight="700" font-family="Georgia,serif">z</text>
+</svg>

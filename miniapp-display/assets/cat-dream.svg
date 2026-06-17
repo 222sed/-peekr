@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- tail -->
+  <path d="M82 118 Q104 106 108 88 Q110 72 98 70" stroke="#A8A8A8" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M82 118 Q104 106 108 88 Q110 72 98 70" stroke="#6C6C6C" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="6 6" opacity=".5"/>
+  <!-- body -->
+  <ellipse cx="60" cy="100" rx="32" ry="26" fill="#A8A8A8"/>
+  <ellipse cx="60" cy="106" rx="20" ry="16" fill="#D8D8D8"/>
+  <path d="M36 92 Q48 86 60 92" stroke="#6C6C6C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M40 104 Q52 98 64 104" stroke="#6C6C6C" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".6"/>
+  <!-- paws -->
+  <ellipse cx="44" cy="124" rx="12" ry="6" fill="#A8A8A8"/>
+  <ellipse cx="72" cy="124" rx="12" ry="6" fill="#A8A8A8"/>
+  <!-- head -->
+  <circle cx="60" cy="60" r="26" fill="#A8A8A8"/>
+  <!-- ears -->
+  <polygon points="44,46 36,28 52,44" fill="#A8A8A8"/>
+  <polygon points="44,45 38,30 51,44" fill="#F0C0C0"/>
+  <polygon points="72,44 68,26 82,42" fill="#A8A8A8"/>
+  <polygon points="72,43 69,28 80,42" fill="#F0C0C0"/>
+  <!-- brow marks -->
+  <path d="M52 50 Q56 46 60 50" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <path d="M60 48 Q64 44 68 48" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <!-- eyes (wide, daydreaming) -->
+  <circle cx="50" cy="60" r="6.5" fill="#5BAD7A"/>
+  <circle cx="51" cy="58.5" r="3.5" fill="#1a1a1a"/>
+  <circle cx="52" cy="57.5" r="1.1" fill="#fff"/>
+  <circle cx="70" cy="60" r="6.5" fill="#5BAD7A"/>
+  <circle cx="71" cy="58.5" r="3.5" fill="#1a1a1a"/>
+  <circle cx="72" cy="57.5" r="1.1" fill="#fff"/>
+  <!-- nose -->
+  <path d="M59 68 L56 72 L62 72 Z" fill="#E8A0A0"/>
+  <path d="M56 72 Q59 75 62 72" stroke="#D08080" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- whiskers -->
+  <line x1="50" y1="69" x2="32" y2="65" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="50" y1="72" x2="32" y2="73" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="69" x2="88" y2="65" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="72" x2="88" y2="73" stroke="#C8C8C8" stroke-width="1.1"/>
+  <!-- dream bubbles -->
+  <circle cx="78" cy="44" r="2" fill="rgba(74,144,217,.5)"/>
+  <circle cx="86" cy="34" r="3.5" fill="rgba(74,144,217,.55)"/>
+  <circle cx="96" cy="24" r="5" fill="rgba(74,144,217,.6)"/>
+  <ellipse cx="108" cy="14" rx="13" ry="10" fill="rgba(74,144,217,.7)"/>
+  <path d="M101 14 Q106 10 111 14 Q106 18 101 14 Z" fill="#fff" opacity=".9"/>
+  <circle cx="112" cy="13" r="1" fill="#1a1a1a" opacity=".8"/>
+  <path d="M99 14 Q96 10 93 14 Q96 18 99 14 Z" fill="#fff" opacity=".7"/>
+</svg>

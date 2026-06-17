@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- tail -->
+  <path d="M90 108 Q112 94 116 74 Q118 58 106 56" stroke="#A8A8A8" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M90 108 Q112 94 116 74 Q118 58 106 56" stroke="#6C6C6C" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="6 6" opacity=".5"/>
+  <!-- body -->
+  <ellipse cx="60" cy="94" rx="34" ry="26" fill="#A8A8A8"/>
+  <ellipse cx="60" cy="100" rx="22" ry="16" fill="#D8D8D8"/>
+  <path d="M36 86 Q48 80 60 86" stroke="#6C6C6C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M40 98 Q52 92 64 98" stroke="#6C6C6C" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".6"/>
+  <!-- paws -->
+  <ellipse cx="44" cy="118" rx="11" ry="5.5" fill="#A8A8A8"/>
+  <ellipse cx="70" cy="118" rx="11" ry="5.5" fill="#A8A8A8"/>
+  <!-- head group (bobs for munch animation) -->
+  <circle cx="60" cy="60" r="25" fill="#A8A8A8"/>
+  <!-- ears -->
+  <polygon points="44,46 36,28 52,44" fill="#A8A8A8"/>
+  <polygon points="44,45 38,30 51,44" fill="#F0C0C0"/>
+  <polygon points="72,44 68,26 82,42" fill="#A8A8A8"/>
+  <polygon points="72,43 69,28 80,42" fill="#F0C0C0"/>
+  <!-- brow marks -->
+  <path d="M52 50 Q56 46 60 50" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <path d="M60 48 Q64 44 68 48" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <!-- eyes (squinting / focused) -->
+  <path d="M46 60 Q50 55 54 60" stroke="#5a5a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="50" cy="61" rx="4.5" ry="2.5" fill="#5BAD7A"/>
+  <path d="M66 60 Q70 55 74 60" stroke="#5a5a5a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="70" cy="61" rx="4.5" ry="2.5" fill="#5BAD7A"/>
+  <!-- nose -->
+  <path d="M59 67 L56 71 L62 71 Z" fill="#E8A0A0"/>
+  <path d="M56 71 Q59 74 62 71" stroke="#D08080" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- whiskers -->
+  <line x1="50" y1="68" x2="32" y2="64" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="50" y1="71" x2="32" y2="72" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="68" x2="88" y2="64" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="71" x2="88" y2="72" stroke="#C8C8C8" stroke-width="1.1"/>
+  <!-- food bowl -->
+  <ellipse cx="60" cy="132" rx="26" ry="8" fill="#E0DAD0"/>
+  <ellipse cx="60" cy="128" rx="26" ry="6" fill="#FAF8F4" stroke="#E8E2D8" stroke-width="1.5"/>
+  <circle cx="50" cy="127" r="3" fill="#E8943A"/>
+  <circle cx="60" cy="126" r="3" fill="#E8943A"/>
+  <circle cx="70" cy="127" r="3" fill="#E8943A"/>
+  <circle cx="55" cy="130" r="2.5" fill="#C87020"/>
+  <circle cx="65" cy="130" r="2.5" fill="#C87020"/>
+</svg>

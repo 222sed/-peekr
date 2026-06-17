@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- tail -->
+  <path d="M80 118 Q104 100 110 76 Q114 56 100 50" stroke="#A8A8A8" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M80 118 Q104 100 110 76 Q114 56 100 50" stroke="#6C6C6C" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="6 6" opacity=".5"/>
+  <!-- body -->
+  <ellipse cx="60" cy="98" rx="32" ry="28" fill="#A8A8A8"/>
+  <ellipse cx="60" cy="104" rx="20" ry="18" fill="#D8D8D8"/>
+  <path d="M36 90 Q48 84 60 90" stroke="#6C6C6C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M40 102 Q52 96 64 102" stroke="#6C6C6C" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".6"/>
+  <!-- paws -->
+  <ellipse cx="44" cy="124" rx="12" ry="6" fill="#A8A8A8"/>
+  <ellipse cx="72" cy="124" rx="12" ry="6" fill="#A8A8A8"/>
+  <!-- head -->
+  <circle cx="60" cy="60" r="26" fill="#A8A8A8"/>
+  <!-- ears -->
+  <polygon points="44,46 36,28 52,44" fill="#A8A8A8"/>
+  <polygon points="44,45 38,30 51,44" fill="#F0C0C0"/>
+  <polygon points="72,44 68,26 82,42" fill="#A8A8A8"/>
+  <polygon points="72,43 69,28 80,42" fill="#F0C0C0"/>
+  <!-- brow marks -->
+  <path d="M52 50 Q56 46 60 50" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <path d="M60 48 Q64 44 68 48" stroke="#6C6C6C" stroke-width="1.5" fill="none" opacity=".6"/>
+  <!-- eyes (open, bright) -->
+  <circle cx="50" cy="60" r="6" fill="#5BAD7A"/>
+  <circle cx="51.5" cy="58.5" r="3.2" fill="#1a1a1a"/>
+  <circle cx="52.5" cy="57.5" r="1" fill="#fff"/>
+  <circle cx="70" cy="60" r="6" fill="#5BAD7A"/>
+  <circle cx="71.5" cy="58.5" r="3.2" fill="#1a1a1a"/>
+  <circle cx="72.5" cy="57.5" r="1" fill="#fff"/>
+  <!-- nose -->
+  <path d="M59 67 L56 71 L62 71 Z" fill="#E8A0A0"/>
+  <path d="M56 71 Q59 74 62 71" stroke="#D08080" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- whiskers -->
+  <line x1="50" y1="68" x2="32" y2="64" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="50" y1="71" x2="32" y2="72" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="68" x2="88" y2="64" stroke="#C8C8C8" stroke-width="1.1"/>
+  <line x1="70" y1="71" x2="88" y2="72" stroke="#C8C8C8" stroke-width="1.1"/>
+  <!-- raised paw -->
+  <ellipse cx="90" cy="84" rx="11" ry="8" fill="#A8A8A8" transform="rotate(-35 90 84)"/>
+  <ellipse cx="84" cy="90" rx="5" ry="3.5" fill="#A8A8A8"/>
+  <ellipse cx="91" cy="93" rx="5" ry="3.5" fill="#A8A8A8"/>
+  <ellipse cx="98" cy="89" rx="5" ry="3.5" fill="#A8A8A8"/>
+  <!-- ball -->
+  <circle cx="22" cy="118" r="9" fill="#E8943A"/>
+  <path d="M16 114 Q22 110 28 114" stroke="#C07020" stroke-width="1.5" fill="none"/>
+  <path d="M15 119 Q22 123 29 119" stroke="#C07020" stroke-width="1.5" fill="none"/>
+</svg>
