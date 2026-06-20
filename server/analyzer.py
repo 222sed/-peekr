@@ -78,10 +78,12 @@ def _pose_features(img_np: np.ndarray, box: list) -> dict:
     try:
         pose = _get_pose()
         keypoints, scores = pose(img_np)  # shape: (N, 17, 2), (N, 17)
-    except Exception:
+    except Exception as e:
+        print(f"[pose] error: {e}")
         return {}
 
     if keypoints is None or len(keypoints) == 0:
+        print("[pose] no keypoints detected")
         return {}
 
     # Pick the detection whose bbox center is closest to our YOLO box center
@@ -119,6 +121,7 @@ def _pose_features(img_np: np.ndarray, box: list) -> dict:
         if bbox_diag > 0:
             feats["body_span"] = float(span / bbox_diag)
 
+    print(f"[pose] detected {len(keypoints)} animals, using index {best_i}, feats={feats}")
     return feats
 
 
