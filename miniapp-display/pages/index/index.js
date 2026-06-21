@@ -41,10 +41,16 @@ Page({
   _pollTimer: null,
   _offlineTimer: null,
   _lastFrameTime: 0,
+  _polling: false,
+  _lastSuccessAt: 0,
 
   onLoad() {
     this._poll()
     this._pollTimer = setInterval(() => this._poll(), 5000)
+  },
+
+  onShow() {
+    this._poll()
   },
 
   onUnload() {
@@ -53,16 +59,49 @@ Page({
   },
 
   _poll() {
+    if (this._polling) return
+    this._polling = true
+
     wx.request({
       url: `${SERVER_URL}/api/status`,
       method: 'GET',
+      timeout: 15000,
+      header: {
+        'ngrok-skip-browser-warning': 'true',
+      },
       success: (res) => {
-        if (res.statusCode === 200) {
+        if (
+          res.statusCode === 200 &&
+          res.data &&
+          typeof res.data === 'object' &&
+          typeof res.data.state === 'string'
+        ) {
+          console.log('[display] status', res.data)
+          this._lastSuccessAt = Date.now()
           this._applyState(res.data)
+        } else {
+          console.error('[display] invalid server response', res.statusCode, res.data)
+          this.setData({
+            connected: false,
+            state: 'unknown',
+            stateLabel: '连接异常',
+            stateDesc: '服务端没有返回有效状态',
+          })
         }
       },
-      fail: () => {
-        this.setData({ connected: false, stateLabel: '连接失败', stateDesc: '无法连接到服务端' })
+      fail: (err) => {
+        console.warn('[display] request failed', err)
+        const offline = Date.now() - this._lastSuccessAt > 20000
+        if (offline) {
+          this.setData({
+            connected: false,
+            stateLabel: '连接失败',
+            stateDesc: '无法连接到服务端',
+          })
+        }
+      },
+      complete: () => {
+        this._polling = false
       },
     })
   },
@@ -77,7 +116,9 @@ Page({
       stateLabel: cfg.label,
       stateDesc: cfg.desc,
       stateColor: cfg.color,
-      connected: data.state !== 'unknown',
+      // A successful /api/status response means the display is connected.
+      // "unknown" only means that no cat is detected in the latest frame.
+      connected: true,
       lastUpdated: timeStr,
     })
   },

@@ -1,8 +1,10 @@
+import base64
 import io
 import math
+import statistics
 from typing import Optional
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import torch
 from ultralytics import YOLO
 
@@ -27,13 +29,16 @@ KP_NOSE      = 2
 KP_NECK      = 3
 KP_ROOT_TAIL = 4
 
-# Rule thresholds
-MOTION_PLAY = 30
-MOTION_STILL = 5
+# Rule thresholds. Motion is normalised by the cat box diagonal, so these
+# values work more consistently at different camera distances/resolutions.
+MOTION_PLAY_RATIO = 0.10
+MOTION_STILL_RATIO = 0.025
 COMPACT_CURL = 0.70
 COMPACT_SIT = 0.60
-STILL_FRAMES_SLEEP = 12
-HEAD_DOWN_RATIO = 0.35  # nose_y > bbox_top + ratio*bbox_h → head is low (eating)
+STILL_FRAMES_SLEEP = 8
+HEAD_DOWN_RATIO = 0.42
+HEAD_DOWN_FRAMES_FOOD = 2
+MISSED_FRAMES_UNKNOWN = 3
 POSE_CONF_MIN = 0.3     # ignore keypoints below this confidence
 
 
@@ -65,12 +70,17 @@ def _compactness(box: list) -> float:
     return min(w, h) / max(w, h)
 
 
-def _motion_score(curr_box: list, prev_box: Optional[list]) -> float:
+def _motion_score(curr_box: list, prev_box: Optional[list]) -> tuple[float, float]:
     if prev_box is None:
-        return 0.0
+        return 0.0, 0.0
     cx1, cy1 = _center(prev_box)
     cx2, cy2 = _center(curr_box)
-    return math.sqrt((cx2 - cx1) ** 2 + (cy2 - cy1) ** 2)
+    pixels = math.sqrt((cx2 - cx1) ** 2 + (cy2 - cy1) ** 2)
+
+    prev_diag = math.hypot(prev_box[2] - prev_box[0], prev_box[3] - prev_box[1])
+    curr_diag = math.hypot(curr_box[2] - curr_box[0], curr_box[3] - curr_box[1])
+    reference_diag = max((prev_diag + curr_diag) / 2, 1.0)
+    return pixels, pixels / reference_diag
 
 
 def _pose_features(img_np: np.ndarray, box: list) -> dict:
@@ -125,27 +135,31 @@ def _pose_features(img_np: np.ndarray, box: list) -> dict:
     return feats
 
 
-def _classify(motion: float, compact: float, still_count: int,
+def _classify(motion: float, stable_motion: float, compact: float,
+              still_count: int, head_down_count: int,
               pose: dict) -> tuple[str, float]:
-    # Fast motion → playing regardless of pose
-    if motion > MOTION_PLAY:
+    # Fast relative movement over either of the latest two frames.
+    if motion >= MOTION_PLAY_RATIO:
         return "play", 0.9
 
-    # Eating: head explicitly down (pose-based, more reliable than box heuristic)
-    if pose.get("head_down") and motion < 20:
+    # Require a low head for more than one frame to avoid food false positives.
+    if (
+        head_down_count >= HEAD_DOWN_FRAMES_FOOD
+        and stable_motion < MOTION_PLAY_RATIO
+    ):
         return "food", 0.85
 
-    # Sleep: long stillness + curled body
-    if motion <= MOTION_STILL and still_count >= STILL_FRAMES_SLEEP and compact >= COMPACT_CURL:
+    body_span = pose.get("body_span")
+    curled = compact >= COMPACT_CURL or (
+        body_span is not None and body_span < 0.38
+    )
+
+    # Sleep: sustained stillness plus a compact/curled body.
+    if still_count >= STILL_FRAMES_SLEEP and curled:
         return "sleep", 0.95
 
-    # Eating fallback (no pose): tall narrow box
-    if not pose and compact < 0.5 and motion < 20:
-        return "food", 0.70
-
-    # Daydreaming: extended body span (stretched out) or moderate compactness
-    body_span = pose.get("body_span", 0)
-    if motion < 15 and (compact < COMPACT_SIT or body_span > 0.6):
+    # Awake but not moving enough to count as play.
+    if stable_motion < MOTION_PLAY_RATIO:
         return "dream", 0.80
 
     prev = state.get_state()["state"]
@@ -161,37 +175,110 @@ def analyze(img_bytes: bytes) -> dict:
     boxes = results[0].boxes
 
     if boxes is None or len(boxes) == 0:
-        state.set_state("unknown", 0.0)
-        state.set_prev_box(None)
+        missed_count = state._store.get("missed_count", 0) + 1
+        state._store["missed_count"] = missed_count
+        # Brief detector misses are common. Keep the previous state for two
+        # frames instead of making the UI flicker to unknown immediately.
+        if missed_count >= MISSED_FRAMES_UNKNOWN:
+            state.set_state("unknown", 0.0)
+            state.set_prev_box(None)
+            state._store["still_count"] = 0
+            state._store["motion_history"] = []
         return state.get_state()
 
+    state._store["missed_count"] = 0
     confs = boxes.conf.cpu().numpy()
     best_idx = int(np.argmax(confs))
     box = boxes.xyxy[best_idx].cpu().numpy().tolist()
+    detection_confidence = float(confs[best_idx])
 
     prev_box = state.get_prev_box()
-    motion = _motion_score(box, prev_box)
+    motion_pixels, motion_ratio = _motion_score(box, prev_box)
     compact = _compactness(box)
 
+    motion_history = state._store.get("motion_history", [])
+    motion_history.append(motion_ratio)
+    motion_history = motion_history[-3:]
+    state._store["motion_history"] = motion_history
+    recent_motion = max(motion_history[-2:])
+    stable_motion = statistics.median(motion_history)
+
     still_count = state._store.get("still_count", 0)
-    if motion <= MOTION_STILL:
+    if stable_motion <= MOTION_STILL_RATIO:
         still_count += 1
     else:
         still_count = 0
 
     pose = _pose_features(img_np, box)
+    head_down_count = state._store.get("head_down_count", 0)
+    if pose.get("head_down") and stable_motion < MOTION_PLAY_RATIO:
+        head_down_count += 1
+    else:
+        head_down_count = 0
 
-    raw_state, confidence = _classify(motion, compact, still_count, pose)
+    raw_state, confidence = _classify(
+        recent_motion,
+        stable_motion,
+        compact,
+        still_count,
+        head_down_count,
+        pose,
+    )
+    print(
+        f"[debug] detect={detection_confidence:.2f} "
+        f"motion={motion_ratio:.3f} smooth={stable_motion:.3f} "
+        f"compact={compact:.3f} still={still_count} "
+        f"head_down={head_down_count} pose={pose} -> {raw_state}"
+    )
     state.set_state(raw_state, confidence)
     state.set_prev_box(box)
     state._store["still_count"] = still_count
+    state._store["head_down_count"] = head_down_count
+
+    preview_b64 = _draw_box(img, box, raw_state, confidence)
 
     return {
         **state.get_state(),
         "box": box,
-        "motion": round(motion, 2),
+        "detection_confidence": round(detection_confidence, 3),
+        "motion": round(motion_ratio, 4),
+        "motion_pixels": round(motion_pixels, 2),
+        "motion_smooth": round(stable_motion, 4),
         "compactness": round(compact, 3),
         "still_count": still_count,
+        "head_down_count": head_down_count,
         "pose": {k: round(float(v), 3) if isinstance(v, (float, np.floating)) else bool(v)
                  for k, v in pose.items()},
+        "preview": preview_b64,
     }
+
+
+def _draw_box(img: Image.Image, box: list, label: str, conf: float) -> str:
+    STATE_COLORS = {
+        "sleep": "#6C8EBF",
+        "play":  "#F4A436",
+        "food":  "#82B366",
+        "dream": "#9673A6",
+    }
+    color = STATE_COLORS.get(label, "#AAAAAA")
+
+    draw = ImageDraw.Draw(img)
+    x1, y1, x2, y2 = [int(v) for v in box]
+    lw = max(3, int(min(img.width, img.height) * 0.005))
+    draw.rectangle([x1, y1, x2, y2], outline=color, width=lw)
+
+    text = f"{label} {conf:.0%}"
+    font_size = max(16, int(min(img.width, img.height) * 0.04))
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except Exception:
+        font = ImageFont.load_default()
+
+    tx, ty = x1 + 4, max(0, y1 - font_size - 4)
+    bbox = draw.textbbox((tx, ty), text, font=font)
+    draw.rectangle(bbox, fill=color)
+    draw.text((tx, ty), text, fill="white", font=font)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=70)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()

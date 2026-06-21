@@ -5,6 +5,9 @@
     <text class="placeholder-text">摄像头未启动</text>
   </view>
 
+  <!-- 带框预览图，叠在摄像头画面上 -->
+  <image wx:if="{{previewSrc}}" class="preview-overlay" src="{{previewSrc}}" mode="aspectFill"></image>
+
   <view class="overlay">
 
     <view class="status-row">
@@ -14,7 +17,7 @@
 
     <view class="meta-row">
       <text class="meta-item">已上传 {{frameCount}} 帧</text>
-      <text class="meta-item">每 5 秒一帧</text>
+      <text class="meta-item">每 3 秒一帧</text>
     </view>
 
     <view class="battery-warn" wx:if="{{lowBattery}}">

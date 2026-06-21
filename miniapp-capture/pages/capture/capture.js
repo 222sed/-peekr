@@ -1,13 +1,15 @@
 const SERVER_URL = getApp().globalData.serverUrl
+const CAPTURE_INTERVAL_MS = 3000
 
 Page({
   data: {
     running: false,
     statusText: '点击开始监控',
-    statusType: 'idle',   // idle | uploading | ok | error
+    statusType: 'idle',
     frameCount: 0,
     battery: 100,
     lowBattery: false,
+    previewSrc: '',
   },
 
   _timer: null,
@@ -35,8 +37,8 @@ Page({
   _startCapture() {
     this._cameraCtx = wx.createCameraContext()
     this.setData({ running: true, statusText: '监控中…', statusType: 'ok', frameCount: 0 })
-    this._timer = setInterval(() => this._tick(), 5000)
-    this._tick()  // 立即执行一次
+    this._timer = setInterval(() => this._tick(), CAPTURE_INTERVAL_MS)
+    this._tick()
   },
 
   _stopCapture() {
@@ -44,7 +46,7 @@ Page({
       clearInterval(this._timer)
       this._timer = null
     }
-    this.setData({ running: false, statusText: '已停止', statusType: 'idle' })
+    this.setData({ running: false, statusText: '已停止', statusType: 'idle', previewSrc: '' })
   },
 
   _tick() {
@@ -58,7 +60,7 @@ Page({
           src: res.tempImagePath,
           quality: 60,
           success: (compressed) => this._upload(compressed.tempFilePath),
-          fail: () => this._upload(res.tempImagePath),  // 压缩失败直接上传原图
+          fail: () => this._upload(res.tempImagePath),
         })
       },
       fail: (err) => {
@@ -73,10 +75,24 @@ Page({
       url: `${SERVER_URL}/api/frame`,
       filePath,
       name: 'file',
+      header: {
+        'ngrok-skip-browser-warning': 'true',
+      },
       success: (res) => {
         this._retryCount = 0
         const count = this.data.frameCount + 1
-        this.setData({ statusText: `已上传 ${count} 帧`, statusType: 'ok', frameCount: count })
+        try {
+          const data = JSON.parse(res.data)
+          const stateLabel = data.state || ''
+          this.setData({
+            statusText: `${stateLabel ? stateLabel + ' · ' : ''}已上传 ${count} 帧`,
+            statusType: 'ok',
+            frameCount: count,
+            previewSrc: data.preview || '',
+          })
+        } catch (e) {
+          this.setData({ statusText: `已上传 ${count} 帧`, statusType: 'ok', frameCount: count })
+        }
       },
       fail: (err) => {
         this._retryCount++
