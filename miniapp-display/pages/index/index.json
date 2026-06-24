@@ -1,3 +1,5 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "cat-anim": "/components/cat-anim/cat-anim"
+  }
 }

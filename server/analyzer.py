@@ -367,6 +367,12 @@ def analyze(
             "cat_detected": False,
             "quality": quality,
             "food_remaining": food_remaining,
+            "feeding": state.get_feeding_feedback(
+                zone_configured=feeding_zone is not None,
+                cat_detected=False,
+                in_zone=False,
+                zone_frames=0,
+            ),
         }
 
     state._store["missed_count"] = 0
@@ -448,6 +454,12 @@ def analyze(
     state.set_prev_box(box)
     state._store["still_count"] = still_count
     state._store["feeding_zone_count"] = feeding_zone_count
+    feeding_feedback = state.get_feeding_feedback(
+        zone_configured=feeding_zone is not None,
+        cat_detected=True,
+        in_zone=nose_in_feeding_zone,
+        zone_frames=feeding_zone_count,
+    )
 
     preview_b64 = _draw_box(img, box, raw_state, confidence)
 
@@ -465,6 +477,7 @@ def analyze(
         "feeding_zone_configured": feeding_zone is not None,
         "feeding_zone_count": feeding_zone_count,
         "nose_in_feeding_zone": nose_in_feeding_zone,
+        "feeding": feeding_feedback,
         "pose": {k: round(float(v), 3) if isinstance(v, (float, np.floating)) else bool(v)
                  for k, v in pose.items()},
         "activity_score": activity_score,

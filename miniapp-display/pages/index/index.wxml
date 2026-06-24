@@ -1,62 +1,203 @@
 <view class="page">
 
-  <view class="header">
-    <view>
-      <view class="pill" style="border-color: {{stateColor}}">
-        <view class="pill-dot" style="background: {{stateColor}}"></view>
-        <text class="pill-text">{{stateLabel}}</text>
-      </view>
-      <text class="device-info" wx:if="{{deviceInfo}}">{{deviceInfo}}</text>
-    </view>
-    <text class="last-updated" wx:if="{{lastUpdated}}">{{lastUpdated}} 更新</text>
-  </view>
-
-  <view class="body-row">
-    <view class="cat-col">
-      <view class="cat-wrap state-{{state}}">
-        <image wx:if="{{state === 'sleep'}}" class="cat-img cat-sleep" src="/assets/cat-sleep.svg" mode="aspectFit"/>
-        <image wx:elif="{{state === 'play'}}" class="cat-img cat-play" src="/assets/cat-play.svg" mode="aspectFit"/>
-        <image wx:elif="{{state === 'food'}}" class="cat-img cat-food" src="/assets/cat-food.svg" mode="aspectFit"/>
-        <image wx:else class="cat-img cat-dream" src="/assets/cat-dream.svg" mode="aspectFit"/>
-      </view>
-      <text class="cat-name">小灰</text>
-      <view class="cat-status">
-        <view class="status-dot-sm" style="background:{{stateColor}}"></view>
-        <text class="cat-status-text">{{stateLabel}}</text>
-      </view>
-      <text class="cat-desc">{{stateDesc}}</text>
-    </view>
-
-    <view class="metrics-col">
-      <view class="metric-row" wx:for="{{metrics}}" wx:key="key">
-        <view class="metric-label-row">
-          <text class="metric-icon">{{item.icon}} {{item.label}}</text>
-          <text class="metric-val">{{item.value}}{{item.unit}}</text>
+  <view wx:if="{{!hasProfile}}" class="designer">
+    <view class="designer-stage">
+      <view class="designer-topbar">
+        <view class="name-editor">
+          <text class="name-label">MY CAT</text>
+          <input class="name-input" value="{{catProfile.name}}" maxlength="8" placeholder="小灰" bindinput="onNameInput" />
         </view>
-        <view class="metric-bar">
-          <view class="metric-fill {{item.colorClass}}" style="width:{{item.barValue}}%"></view>
+
+        <view class="stage-actions">
+          <button class="round-action" data-action="info" bindtap="onToolTap">i</button>
+          <button class="round-action" data-action="camera" bindtap="onToolTap">📷</button>
         </view>
       </view>
-    </view>
-  </view>
 
-  <view class="timeline-wrap">
-    <view class="tl-header">
-      <text class="tl-title">今日时间轴</text>
-      <text class="tl-range">00:00 — 现在</text>
+      <view class="cat-showcase">
+        <view class="cat-shadow"></view>
+        <image class="cat-figure" src="{{catPreview.bodySrc}}" mode="aspectFit" />
+      </view>
+
+      <button class="save-fab" data-action="save" bindtap="onToolTap">＋</button>
     </view>
-    <view class="tl-track">
+
+    <view class="designer-tabs">
       <view
-        wx:for="{{timeline}}"
-        wx:key="index"
-        class="tl-seg tl-{{item.type}}"
-        style="width:{{item.pct}}%"
-      ></view>
+        wx:for="{{categories}}"
+        wx:key="key"
+        class="designer-tab {{activeCategory === item.key ? 'active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onSelectCategory"
+      >
+        <text class="designer-tab-icon">{{item.icon}}</text>
+        <text class="designer-tab-label">{{item.label}}</text>
+      </view>
     </view>
+
+    <scroll-view class="designer-panel" scroll-y="true">
+      <view class="current-summary">
+        <view class="summary-chip" wx:for="{{selectedSummary}}" wx:key="key">
+          <text class="summary-chip-label">{{item.label}}</text>
+          <text class="summary-chip-value">{{item.value}}</text>
+        </view>
+      </view>
+
+      <view class="asset-grid">
+        <view
+          wx:for="{{activeOptions}}"
+          wx:key="value"
+          class="asset-card {{item.selected ? 'active' : ''}}"
+          data-field="{{activeCategory}}"
+          data-value="{{item.value}}"
+          bindtap="onSelectOption"
+        >
+          <view class="asset-preview">
+            <image wx:if="{{item.previewSrc}}" class="asset-img" src="{{item.previewSrc}}" mode="aspectFit" />
+            <view wx:elif="{{item.swatch}}" class="asset-swatch" style="background:{{item.swatch}}"></view>
+            <text wx:else class="asset-emoji">{{item.emoji}}</text>
+          </view>
+          <text class="asset-title">{{item.label}}</text>
+          <text class="asset-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
-  <view class="offline-banner" wx:if="{{!connected}}">
-    采集端未连接，请检查采集小程序是否保持监控
-  </view>
+  <block wx:else>
+    <view class="home-page dashboard-page">
+      <view class="dash-header">
+        <view>
+          <view class="dash-brand">
+            <text>Peekr</text>
+            <view class="brand-dot"></view>
+          </view>
+          <text class="dash-subtitle">猫咪状态监测</text>
+        </view>
+        <button class="dash-setting" bindtap="onOpenSettings">⚙</button>
+      </view>
+
+      <view class="settings-mask" wx:if="{{settingsOpen}}" bindtap="onCloseSettings"></view>
+      <view class="settings-popover" wx:if="{{settingsOpen}}">
+        <view class="settings-popover-head">
+          <view>
+            <view class="settings-popover-title">展示设置</view>
+            <view class="settings-popover-desc">用于单独验证展示端界面</view>
+          </view>
+          <view class="settings-popover-close" bindtap="onCloseSettings">×</view>
+        </view>
+
+        <view class="settings-option" bindtap="onToggleTestMode">
+          <view class="settings-option-main">
+            <view class="settings-option-icon">T</view>
+            <view>
+              <view class="settings-option-title">测试模式</view>
+              <view class="settings-option-desc">
+                {{testMode ? '正在使用模拟状态轮换' : '不依赖采集端，模拟睡眠/活动/进食'}}
+              </view>
+            </view>
+          </view>
+          <view class="settings-switch {{testMode ? 'on' : ''}}">
+            <view class="settings-switch-dot"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="hero-card">
+        <view class="hero-meta">
+          <view class="hero-pill">
+            <text wx:if="{{lastUpdated}}">更新于 {{lastUpdated}}</text>
+            <text wx:else>等待画面</text>
+          </view>
+          <view class="hero-pill test" wx:if="{{testMode}}">
+            <view class="hero-dot"></view>
+            <text>测试模式</text>
+          </view>
+          <view class="hero-pill {{connected ? 'online' : 'offline'}}">
+            <view class="hero-dot"></view>
+            <text>{{connected ? '在线' : '离线'}}</text>
+          </view>
+        </view>
+
+        <view class="hero-cat state-{{state}}">
+          <view class="cat-aura"></view>
+          <cat-anim state="{{state}}" />
+          <view class="cat-anim sleep-anim">
+            <text>Z</text>
+            <text>z</text>
+            <text>z</text>
+          </view>
+          <view class="cat-anim play-anim">
+            <text></text>
+            <text></text>
+            <text></text>
+          </view>
+          <view class="cat-anim food-anim">
+            <view class="food-bowl">
+              <view class="food-bowl-rim"></view>
+            </view>
+            <view class="food-dot one"></view>
+            <view class="food-dot two"></view>
+          </view>
+          <view class="cat-anim dream-anim">
+            <text>…</text>
+          </view>
+        </view>
+
+        <view class="hero-state-row">
+          <view class="state-indicator" style="background:{{stateColor}}"></view>
+          <text class="hero-state">{{stateLabel}}</text>
+        </view>
+        <text class="hero-desc">{{catProfile.name}} · {{stateDesc}}</text>
+      </view>
+
+      <view class="status-panel">
+        <view class="section-head">
+          <text class="section-title">状态栏</text>
+          <text class="section-note">{{deviceNote}}</text>
+        </view>
+
+        <view class="status-row" wx:for="{{metrics}}" wx:key="key">
+          <view class="status-main">
+            <text class="status-icon">{{item.icon}}</text>
+            <text class="status-label">{{item.label}}</text>
+          </view>
+          <view class="status-bar">
+            <view class="status-fill {{item.colorClass}}" style="width:{{item.barValue}}%"></view>
+          </view>
+          <text class="status-value">{{item.value}}{{item.unit}}</text>
+        </view>
+      </view>
+
+      <view class="timeline-panel">
+        <view class="section-head">
+          <text class="section-title">今日时间轴</text>
+          <text class="section-note">00:00 - 现在</text>
+        </view>
+        <view class="timeline-track">
+          <view
+            wx:for="{{timeline}}"
+            wx:key="index"
+            class="timeline-seg timeline-{{item.type}}"
+            style="width:{{item.pct}}%"
+          ></view>
+        </view>
+        <view class="timeline-legend">
+          <text>🟣 睡眠</text>
+          <text>🟢 活跃</text>
+          <text>🟠 进食</text>
+          <text>🔵 发呆</text>
+        </view>
+      </view>
+
+      <view class="notice-card" wx:if="{{!connected}}">
+        采集端未连接，请检查采集小程序是否保持监控
+      </view>
+
+      <view class="customize-entry" bindtap="onEditCatProfile">
+        自定义 {{catProfile.name}} 的形象 →
+      </view>
+    </view>
+  </block>
 
 </view>

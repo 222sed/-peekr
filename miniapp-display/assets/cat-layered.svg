@@ -1,0 +1,55 @@
+<svg width="320" height="400" viewBox="0 0 320 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- tail -->
+  <path id="tail" d="M120 290 C90 310 60 330 80 360 C95 380 130 370 140 350 C150 330 135 305 120 290Z" fill="#1E1E1E"/>
+  <!-- body -->
+  <ellipse cx="160" cy="270" rx="80" ry="90" fill="#1E1E1E"/>
+  <!-- belly -->
+  <ellipse cx="160" cy="285" rx="52" ry="65" fill="white"/>
+  <!-- left back leg -->
+  <rect id="leg-bl" x="95" y="320" width="34" height="70" rx="17" fill="#1E1E1E"/>
+  <!-- right back leg -->
+  <rect id="leg-br" x="191" y="320" width="34" height="70" rx="17" fill="#1E1E1E"/>
+  <!-- left front leg -->
+  <rect id="leg-fl" x="107" y="300" width="30" height="68" rx="15" fill="#E7E7E7"/>
+  <!-- right front leg -->
+  <rect id="leg-fr" x="183" y="300" width="30" height="68" rx="15" fill="#E7E7E7"/>
+  <!-- head -->
+  <ellipse id="head" cx="160" cy="145" rx="82" ry="68" fill="#DFDFDF"/>
+  <!-- head black patches -->
+  <ellipse cx="118" cy="118" rx="58" ry="64" transform="rotate(28 118 118)" fill="#1E1E1E"/>
+  <ellipse cx="200" cy="110" rx="58" ry="64" transform="rotate(-28 200 110)" fill="#1E1E1E"/>
+  <!-- left ear outer -->
+  <path d="M97 88 L72 38 L118 72Z" fill="#1E1E1E"/>
+  <!-- right ear outer -->
+  <path d="M223 88 L248 38 L202 72Z" fill="#1E1E1E"/>
+  <!-- left ear inner -->
+  <path d="M98 82 L78 46 L114 70Z" fill="#FFA6A6"/>
+  <!-- right ear inner -->
+  <path d="M222 82 L242 46 L206 70Z" fill="#FFA6A6"/>
+  <!-- face white muzzle -->
+  <rect x="124" y="138" width="72" height="38" rx="19" fill="white"/>
+  <!-- nose -->
+  <path d="M157 148 L163 148 L160 154Z" fill="#1E1E1E"/>
+  <!-- mouth -->
+  <path d="M154 156 Q160 162 166 156" stroke="#1E1E1E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- left eye -->
+  <ellipse id="eye-l" cx="134" cy="128" rx="11" ry="13" fill="white"/>
+  <ellipse id="pupil-l" cx="134" cy="129" rx="6" ry="8" fill="#1E1E1E"/>
+  <circle cx="131" cy="126" r="2.5" fill="white"/>
+  <!-- right eye -->
+  <ellipse id="eye-r" cx="186" cy="128" rx="11" ry="13" fill="white"/>
+  <ellipse id="pupil-r" cx="186" cy="129" rx="6" ry="8" fill="#1E1E1E"/>
+  <circle cx="183" cy="126" r="2.5" fill="white"/>
+  <!-- whiskers left -->
+  <line x1="122" y1="152" x2="80" y2="148" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line x1="122" y1="157" x2="80" y2="157" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line x1="122" y1="162" x2="80" y2="166" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <!-- whiskers right -->
+  <line x1="198" y1="152" x2="240" y2="148" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line x1="198" y1="157" x2="240" y2="157" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line x1="198" y1="162" x2="240" y2="166" stroke="#B8B8B8" stroke-linecap="round" stroke-width="1.5"/>
+  <!-- paw left -->
+  <rect id="paw-l" x="107" y="358" width="30" height="16" rx="8" fill="#E7E7E7"/>
+  <!-- paw right -->
+  <rect id="paw-r" x="183" y="358" width="30" height="16" rx="8" fill="#E7E7E7"/>
+</svg>

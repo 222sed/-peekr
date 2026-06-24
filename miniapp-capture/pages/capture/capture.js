@@ -32,6 +32,15 @@ const QUALITY_MESSAGES = {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
 
+const formatClock = (timestamp) => {
+  if (!timestamp) return '暂无'
+  const date = new Date(timestamp)
+  const hh = date.getHours().toString().padStart(2, '0')
+  const mm = date.getMinutes().toString().padStart(2, '0')
+  const ss = date.getSeconds().toString().padStart(2, '0')
+  return `${hh}:${mm}:${ss}`
+}
+
 Page({
   data: {
     running: false,
@@ -45,6 +54,17 @@ Page({
     previewSrc: '',
     qualityWarning: '',
     reconnectText: '',
+    serverUrl: SERVER_URL,
+    uploadState: 'idle',
+    uploadStateLabel: '未连接',
+    lastUploadText: '暂无',
+    lastErrorText: '暂无',
+    failCount: 0,
+    nextRetryText: '',
+    uploadingNow: false,
+    lastHttpStatus: '',
+    feedingFeedbackText: '等待进食区域反馈',
+    feedingFeedbackType: 'idle',
 
     hasFeedingZone: false,
     feedingZone: { ...DEFAULT_FEEDING_ZONE },
@@ -194,6 +214,60 @@ Page({
 
   onToggleSettings() {
     this.setData({ settingsOpen: !this.data.settingsOpen })
+  },
+
+  onTestConnection() {
+    this.setData({ settingsOpen: false })
+    this._setUploadStatus({
+      state: 'uploading',
+      label: '测试连接中',
+      uploadingNow: true,
+      error: '',
+      nextRetry: '',
+      httpStatus: '',
+    })
+    wx.request({
+      url: `${SERVER_URL}/api/health`,
+      method: 'GET',
+      timeout: 8000,
+      header: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.ok) {
+          this._setUploadStatus({
+            state: 'ok',
+            label: '服务端已连接',
+            lastUploadAt: Date.now(),
+            failCount: 0,
+            error: '',
+            nextRetry: '',
+            uploadingNow: false,
+            httpStatus: '200',
+          })
+          wx.showToast({ title: '服务端正常', icon: 'success' })
+          return
+        }
+        this._setUploadStatus({
+          state: 'error',
+          label: '服务端异常',
+          error: `健康检查返回 ${res.statusCode}`,
+          nextRetry: '',
+          uploadingNow: false,
+          httpStatus: String(res.statusCode || ''),
+        })
+      },
+      fail: (err) => {
+        this._setUploadStatus({
+          state: 'error',
+          label: '连接失败',
+          error: this._shortError(err),
+          nextRetry: '',
+          uploadingNow: false,
+          httpStatus: '',
+        })
+      },
+    })
   },
 
   onCloseSettings() {
@@ -574,6 +648,16 @@ Page({
       frameCount: 0,
       qualityWarning: '',
       reconnectText: '',
+      uploadState: 'uploading',
+      uploadStateLabel: '准备上传',
+      lastUploadText: '暂无',
+      lastErrorText: '暂无',
+      failCount: 0,
+      nextRetryText: '',
+      uploadingNow: false,
+      lastHttpStatus: '',
+      feedingFeedbackText: this.data.hasFeedingZone ? '等待猫咪进入食盆区域' : '未设置食盆区域',
+      feedingFeedbackType: this.data.hasFeedingZone ? 'waiting' : 'missing',
     })
     this._timer = setInterval(() => this._tick(), CAPTURE_INTERVAL_MS)
     this._tick()
@@ -604,6 +688,12 @@ Page({
       previewSrc: '',
       qualityWarning: '',
       reconnectText: '',
+      uploadState: 'idle',
+      uploadStateLabel: '已停止',
+      uploadingNow: false,
+      nextRetryText: '',
+      feedingFeedbackText: '监控已停止',
+      feedingFeedbackType: 'idle',
     })
   },
 
@@ -612,6 +702,12 @@ Page({
     if (Date.now() < this._nextAttemptAt) return
     this._frameBusy = true
     this.setData({ statusText: '截图中…', statusType: 'uploading' })
+    this._setUploadStatus({
+      state: 'uploading',
+      label: '截图中',
+      uploadingNow: true,
+      nextRetry: '',
+    })
 
     this._cameraCtx.takePhoto({
       quality: 'normal',
@@ -632,6 +728,14 @@ Page({
   },
 
   _upload(filePath) {
+    this._setUploadStatus({
+      state: 'uploading',
+      label: '上传中',
+      uploadingNow: true,
+      nextRetry: '',
+      httpStatus: '',
+    })
+
     const formData = {
       device_id: this._deviceId,
       captured_at: String(Date.now() / 1000),
@@ -653,6 +757,13 @@ Page({
       success: (res) => {
         if (res.statusCode < 200 || res.statusCode >= 300) {
           console.error('[capture] server error', res.statusCode, res.data)
+          this._setUploadStatus({
+            state: 'error',
+            label: '服务端异常',
+            error: `服务端返回 ${res.statusCode}`,
+            httpStatus: String(res.statusCode || ''),
+            uploadingNow: false,
+          })
           this._scheduleRetry(`服务端返回 ${res.statusCode}`)
           return
         }
@@ -660,6 +771,16 @@ Page({
         this._retryCount = 0
         this._nextAttemptAt = 0
         const count = this.data.frameCount + 1
+        this._setUploadStatus({
+          state: 'ok',
+          label: '上传正常',
+          lastUploadAt: Date.now(),
+          failCount: 0,
+          error: '',
+          nextRetry: '',
+          uploadingNow: false,
+          httpStatus: String(res.statusCode || 200),
+        })
         try {
           const data = JSON.parse(res.data)
           const stateLabel = STATE_LABELS[data.state] || data.state || ''
@@ -669,6 +790,7 @@ Page({
           const qualityWarning = warnings.length
             ? (QUALITY_MESSAGES[warnings[0]] || '当前画面质量可能影响识别')
             : ''
+          const feedingFeedback = this._formatFeedingFeedback(data.feeding)
           this.setData({
             statusText: `${stateLabel ? `${stateLabel} · ` : ''}已上传 ${count} 帧`,
             statusType: 'ok',
@@ -676,6 +798,8 @@ Page({
             previewSrc: data.preview || '',
             qualityWarning,
             reconnectText: '',
+            feedingFeedbackText: feedingFeedback.text,
+            feedingFeedbackType: feedingFeedback.type,
           })
         } catch (err) {
           console.warn('[capture] invalid response', err)
@@ -690,6 +814,16 @@ Page({
       fail: (err) => {
         if (!this.data.running || this._stopping) return
         console.error('[capture] upload failed', err)
+        const message = err && err.errMsg && err.errMsg.includes('timeout')
+          ? '上传超时'
+          : this._shortError(err)
+        this._setUploadStatus({
+          state: 'error',
+          label: '上传失败',
+          error: message,
+          uploadingNow: false,
+          httpStatus: '',
+        })
         this._scheduleRetry(
           err && err.errMsg && err.errMsg.includes('timeout')
             ? '上传超时'
@@ -717,6 +851,49 @@ Page({
     this._frameBusy = false
   },
 
+  _setUploadStatus(update = {}) {
+    const next = {}
+    if (update.state !== undefined) next.uploadState = update.state
+    if (update.label !== undefined) next.uploadStateLabel = update.label
+    if (update.lastUploadAt !== undefined) next.lastUploadText = formatClock(update.lastUploadAt)
+    if (update.error !== undefined) next.lastErrorText = update.error || '暂无'
+    if (update.failCount !== undefined) next.failCount = update.failCount
+    if (update.nextRetry !== undefined) next.nextRetryText = update.nextRetry || ''
+    if (update.uploadingNow !== undefined) next.uploadingNow = Boolean(update.uploadingNow)
+    if (update.httpStatus !== undefined) next.lastHttpStatus = update.httpStatus || ''
+    this.setData(next)
+  },
+
+  _shortError(err) {
+    const message = err && err.errMsg ? String(err.errMsg) : '网络连接异常'
+    if (message.includes('timeout')) return '请求超时'
+    if (message.includes('fail')) return message.replace(/^.*fail[: ]?/i, '').slice(0, 42) || '网络连接异常'
+    return message.slice(0, 42)
+  },
+
+  _formatFeedingFeedback(feeding) {
+    if (!feeding || !feeding.zone_set) {
+      return { type: 'missing', text: '未设置食盆区域' }
+    }
+    if (!feeding.cat_detected) {
+      return { type: 'idle', text: '未识别到猫咪' }
+    }
+    if (feeding.confirmed || feeding.active) {
+      const seconds = Math.round(feeding.active_seconds || feeding.candidate_seconds || 0)
+      return { type: 'confirmed', text: `本次进食已记录${seconds ? ` · ${seconds} 秒` : ''}` }
+    }
+    if (feeding.in_zone) {
+      const candidate = Math.round(feeding.candidate_seconds || 0)
+      const total = Math.round(feeding.confirm_seconds || 15)
+      const remain = Math.max(0, Math.round(feeding.remaining_seconds || 0))
+      return {
+        type: 'candidate',
+        text: `疑似进食中 ${candidate}/${total} 秒${remain ? ` · 还需 ${remain} 秒` : ''}`,
+      }
+    }
+    return { type: 'outside', text: '猫咪不在食盆区域' }
+  },
+
   _scheduleRetry(message) {
     this._retryCount += 1
     const delayIndex = Math.min(this._retryCount - 1, RETRY_DELAYS_MS.length - 1)
@@ -727,6 +904,12 @@ Page({
       statusText: `连接异常 (${this._retryCount}) · ${message}`,
       statusType: 'error',
       reconnectText: `${seconds} 秒后自动重试`,
+      uploadState: 'error',
+      uploadStateLabel: '等待重试',
+      failCount: this._retryCount,
+      lastErrorText: message,
+      nextRetryText: `${seconds} 秒后自动重试`,
+      uploadingNow: false,
     })
   },
 

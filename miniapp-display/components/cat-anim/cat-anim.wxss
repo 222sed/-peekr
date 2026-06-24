@@ -1,0 +1,481 @@
+/* ============================================================
+   CAT-ANIM COMPONENT — 活跃跳跃猫咪
+   黑白配色，320rpx × 400rpx
+   ============================================================ */
+
+.cat-root {
+  position: relative;
+  width: 320rpx;
+  height: 400rpx;
+}
+
+.part {
+  position: absolute;
+}
+
+/* ── 尾巴 ─────────────────────────────────── */
+.tail {
+  bottom: 80rpx;
+  right: 50rpx;
+  width: 30rpx;
+  height: 150rpx;
+  border-radius: 15rpx 15rpx 7rpx 7rpx;
+  background: #1E1E1E;
+  transform-origin: 50% 100%;
+}
+.tail-tip {
+  top: -16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #1E1E1E;
+}
+
+/* ── 后腿 ─────────────────────────────────── */
+.leg-back-l {
+  bottom: 0;
+  left: 50rpx;
+  width: 46rpx;
+  height: 106rpx;
+  border-radius: 23rpx 23rpx 17rpx 17rpx;
+  background: #1E1E1E;
+  transform-origin: 50% 0%;
+}
+.leg-back-r {
+  bottom: 0;
+  right: 50rpx;
+  width: 46rpx;
+  height: 106rpx;
+  border-radius: 23rpx 23rpx 17rpx 17rpx;
+  background: #1E1E1E;
+  transform-origin: 50% 0%;
+}
+
+/* ── 身体 ─────────────────────────────────── */
+.body {
+  bottom: 86rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 184rpx;
+  height: 176rpx;
+  border-radius: 50%;
+  background: #1E1E1E;
+  transform-origin: 50% 100%;
+}
+.belly {
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 104rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── 前腿+爪子 ─────────────────────────────── */
+.leg-front-l {
+  bottom: 150rpx;
+  left: 26rpx;
+  width: 40rpx;
+  height: 116rpx;
+  border-radius: 20rpx;
+  background: #E0E0E0;
+  transform-origin: 50% 0%;
+}
+.leg-front-r {
+  bottom: 150rpx;
+  right: 26rpx;
+  width: 40rpx;
+  height: 116rpx;
+  border-radius: 20rpx;
+  background: #E0E0E0;
+  transform-origin: 50% 0%;
+}
+.paw-l, .paw-r {
+  bottom: -13rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46rpx;
+  height: 30rpx;
+  border-radius: 15rpx;
+  background: #E0E0E0;
+}
+
+/* ── 头部组 ─────────────────────────────────── */
+.head-group {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 216rpx;
+  height: 216rpx;
+  transform-origin: 50% 100%;
+}
+
+/* ── 耳朵 ─────────────────────────────────── */
+.ear-l, .ear-r {
+  width: 0;
+  height: 0;
+  border-left: 28rpx solid transparent;
+  border-right: 28rpx solid transparent;
+  border-bottom: 63rpx solid #1E1E1E;
+  transform-origin: 50% 100%;
+}
+.ear-l {
+  top: 6rpx;
+  left: 23rpx;
+  transform: rotate(-23deg);
+}
+.ear-r {
+  top: 6rpx;
+  right: 23rpx;
+  transform: rotate(23deg);
+}
+.ear-inner {
+  position: absolute;
+  left: -15rpx;
+  top: 13rpx;
+  width: 0;
+  height: 0;
+  border-left: 15rpx solid transparent;
+  border-right: 15rpx solid transparent;
+  border-bottom: 36rpx solid #FFA6A6;
+}
+
+/* ── 头 ─────────────────────────────────────── */
+.head {
+  top: 43rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 193rpx;
+  height: 166rpx;
+  border-radius: 50%;
+  background: #DFDFDF;
+  overflow: hidden;
+}
+.head-patch-l {
+  top: -23rpx;
+  left: -30rpx;
+  width: 133rpx;
+  height: 133rpx;
+  border-radius: 50%;
+  background: #1E1E1E;
+  transform: rotate(28deg);
+}
+.head-patch-r {
+  top: -23rpx;
+  right: -30rpx;
+  width: 133rpx;
+  height: 133rpx;
+  border-radius: 50%;
+  background: #1E1E1E;
+  transform: rotate(-28deg);
+}
+
+/* ── 眼睛 ─────────────────────────────────── */
+.eye-l, .eye-r {
+  top: 53rpx;
+  width: 36rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: white;
+  overflow: hidden;
+  z-index: 2;
+}
+.eye-l { left: 26rpx; }
+.eye-r { right: 26rpx; }
+
+.pupil-l, .pupil-r {
+  left: 50%;
+  top: 5rpx;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: #1E1E1E;
+}
+.shine-l, .shine-r {
+  left: 6rpx;
+  top: 5rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── 口鼻 ─────────────────────────────────── */
+.muzzle {
+  bottom: 23rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 86rpx;
+  height: 50rpx;
+  border-radius: 23rpx;
+  background: white;
+  z-index: 2;
+}
+.nose {
+  top: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16rpx;
+  height: 13rpx;
+  background: #1E1E1E;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  transform: translateX(-50%) rotate(180deg);
+}
+.mouth {
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36rpx;
+  height: 16rpx;
+  border-bottom: 3rpx solid #1E1E1E;
+  border-left: 3rpx solid #1E1E1E;
+  border-right: 3rpx solid #1E1E1E;
+  border-radius: 0 0 18rpx 18rpx;
+}
+
+/* ── 胡须 ─────────────────────────────────── */
+.whisker {
+  height: 2.5rpx;
+  background: #AAAAAA;
+  border-radius: 3rpx;
+  z-index: 2;
+}
+.wl1 { left: -73rpx; top: 80rpx; width: 70rpx; transform: rotate(-10deg); }
+.wl2 { left: -73rpx; top: 91rpx; width: 70rpx; }
+.wl3 { left: -73rpx; top: 103rpx; width: 70rpx; transform: rotate(10deg); }
+.wr1 { right: -73rpx; top: 80rpx; width: 70rpx; transform: rotate(10deg); }
+.wr2 { right: -73rpx; top: 91rpx; width: 70rpx; }
+.wr3 { right: -73rpx; top: 103rpx; width: 70rpx; transform: rotate(-10deg); }
+
+/* ── 粒子效果 ─────────────────────────────────── */
+.sparks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320rpx;
+  height: 400rpx;
+  pointer-events: none;
+}
+.spark {
+  position: absolute;
+  border-radius: 50%;
+}
+.spark1 {
+  width: 16rpx;
+  height: 16rpx;
+  background: #4CAF7D;
+  top: 50rpx;
+  left: 16rpx;
+}
+.spark2 {
+  width: 13rpx;
+  height: 13rpx;
+  background: #4A90D9;
+  top: 16rpx;
+  right: 33rpx;
+}
+.spark3 {
+  width: 11rpx;
+  height: 11rpx;
+  background: #E8943A;
+  bottom: 100rpx;
+  right: 6rpx;
+}
+
+
+/* ============================================================
+   状态动画
+   ============================================================ */
+
+/* ── PLAY 活跃：跳跃，前后腿交替，尾巴摆动，粒子闪烁 ── */
+.state-play .tail {
+  animation: tailWag 0.7s ease-in-out infinite alternate;
+}
+.state-play .leg-back-l {
+  animation: backLegL 0.8s ease-in-out infinite alternate;
+}
+.state-play .leg-back-r {
+  animation: backLegR 0.8s ease-in-out infinite alternate;
+}
+.state-play .body {
+  animation: bodyBounce 0.8s ease-in-out infinite alternate;
+}
+.state-play .leg-front-l {
+  animation: frontLegL 0.8s ease-in-out infinite alternate;
+}
+.state-play .leg-front-r {
+  animation: frontLegR 0.8s ease-in-out infinite alternate;
+}
+.state-play .head-group {
+  animation: headBob 0.8s ease-in-out infinite alternate;
+}
+.state-play .ear-l {
+  animation: earL 0.8s ease-in-out infinite alternate;
+}
+.state-play .ear-r {
+  animation: earR 0.8s ease-in-out infinite alternate;
+}
+.state-play .eye-l,
+.state-play .eye-r {
+  animation: eyeBlink 3s ease-in-out infinite;
+}
+.state-play .spark1 {
+  animation: spark 1.5s ease-in-out infinite;
+}
+.state-play .spark2 {
+  animation: spark 1.5s 0.3s ease-in-out infinite;
+}
+.state-play .spark3 {
+  animation: spark 1.5s 0.6s ease-in-out infinite;
+}
+
+/* ── SLEEP 睡觉：呼吸，尾巴微动 ── */
+.state-sleep .body {
+  animation: bodyBreathe 3.4s ease-in-out infinite;
+}
+.state-sleep .head-group {
+  animation: headSleep 3.4s ease-in-out infinite;
+}
+.state-sleep .tail {
+  animation: tailSleep 5s ease-in-out infinite;
+}
+.state-sleep .eye-l,
+.state-sleep .eye-r {
+  transform: scaleY(0.1);
+}
+
+/* ── FOOD 进食：点头 ── */
+.state-food .head-group {
+  animation: headEat 0.55s ease-in-out infinite;
+}
+.state-food .body {
+  animation: bodyEat 0.55s ease-in-out infinite;
+}
+.state-food .tail {
+  animation: tailSleep 4s ease-in-out infinite;
+}
+
+/* ── DREAM 发呆：缓慢浮动 ── */
+.state-dream .body {
+  animation: bodyFloat 3.8s ease-in-out infinite;
+}
+.state-dream .head-group {
+  animation: headFloat 3.8s ease-in-out infinite;
+}
+.state-dream .tail {
+  animation: tailDream 3.8s ease-in-out infinite;
+}
+
+/* ── UNKNOWN 等待：低透明度浮动 ── */
+.state-unknown .body {
+  animation: bodyFloat 5s ease-in-out infinite;
+  opacity: 0.7;
+}
+.state-unknown .head-group {
+  animation: headFloat 5s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+
+/* ============================================================
+   关键帧
+   ============================================================ */
+
+@keyframes tailWag {
+  from { transform: rotate(-37deg); }
+  to   { transform: rotate(37deg); }
+}
+
+@keyframes tailSleep {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(8deg); }
+}
+
+@keyframes tailDream {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(20deg); }
+}
+
+@keyframes backLegL {
+  from { transform: rotate(-30deg); }
+  to   { transform: rotate(13deg); }
+}
+
+@keyframes backLegR {
+  from { transform: rotate(30deg); }
+  to   { transform: rotate(-13deg); }
+}
+
+@keyframes bodyBounce {
+  from { transform: translateX(-50%) scaleY(1) translateY(0); }
+  to   { transform: translateX(-50%) scaleY(0.94) translateY(6rpx); }
+}
+
+@keyframes bodyBreathe {
+  0%, 100% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+  50% { transform: translateX(-50%) scaleY(1.04) scaleX(0.98); }
+}
+
+@keyframes bodyEat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(13rpx); }
+}
+
+@keyframes bodyFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-20rpx); }
+}
+
+@keyframes frontLegL {
+  from { transform: rotate(-91deg); }
+  to   { transform: rotate(-58deg); }
+}
+
+@keyframes frontLegR {
+  from { transform: rotate(91deg); }
+  to   { transform: rotate(58deg); }
+}
+
+@keyframes headBob {
+  from { transform: translateX(-50%) translateY(0) rotate(-6deg); }
+  to   { transform: translateX(-50%) translateY(6rpx) rotate(6deg); }
+}
+
+@keyframes headSleep {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(10deg); }
+}
+
+@keyframes headEat {
+  0%, 100% { transform: translateX(-50%) rotate(0deg) translateY(0); }
+  50% { transform: translateX(-50%) rotate(30deg) translateY(10rpx); }
+}
+
+@keyframes headFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  50% { transform: translateX(-50%) translateY(-13rpx) rotate(2.5deg); }
+}
+
+@keyframes earL {
+  from { transform: rotate(-33deg); }
+  to   { transform: rotate(-16deg); }
+}
+
+@keyframes earR {
+  from { transform: rotate(33deg); }
+  to   { transform: rotate(16deg); }
+}
+
+@keyframes eyeBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes spark {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(2.2); }
+}

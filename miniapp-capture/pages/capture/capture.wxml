@@ -19,7 +19,7 @@
 
   <view
     wx:if="{{running && hasFeedingZone && showFeedingZone && !calibrationStep}}"
-    class="feeding-zone-live"
+    class="feeding-zone-live feeding-{{feedingFeedbackType}}"
     style="{{liveFeedingZoneStyle}}"
   >
     <view class="feeding-zone-live-label">食盆区域</view>
@@ -40,7 +40,24 @@
   ></view>
 
   <view class="settings-menu" wx:if="{{settingsOpen && !calibrationStep}}">
-    <view class="settings-title">采集设置</view>
+    <view class="settings-head">
+      <view>
+        <view class="settings-title">采集设置</view>
+        <view class="settings-subtitle">食盆区域、猫粮校准和服务测试</view>
+      </view>
+      <view class="settings-close" bindtap="onCloseSettings">×</view>
+    </view>
+
+    <view class="settings-item" bindtap="onTestConnection">
+      <view class="settings-item-main">
+        <text class="settings-item-icon">↗</text>
+        <view>
+          <view class="settings-item-label">测试服务连接</view>
+          <view class="settings-item-desc">检查采集端是否能上传到服务器</view>
+        </view>
+      </view>
+      <text class="settings-arrow">›</text>
+    </view>
 
     <view class="settings-item" bindtap="onOpenFeedingSetup">
       <view class="settings-item-main">
@@ -106,6 +123,45 @@
       <text class="meta-item">{{battery}}%{{isCharging ? ' · 充电中' : ''}}</text>
       <text class="meta-item zone-ready" wx:if="{{hasFeedingZone}}">食盆区域已设置</text>
       <text class="meta-item zone-missing" wx:else>进食识别未设置</text>
+    </view>
+
+    <view class="feeding-feedback feeding-{{feedingFeedbackType}}">
+      <view class="feeding-feedback-dot"></view>
+      <text>{{feedingFeedbackText}}</text>
+    </view>
+
+    <view class="upload-panel">
+      <view class="upload-panel-head">
+        <view class="upload-state">
+          <view class="upload-dot {{uploadState}}"></view>
+          <text class="upload-title">{{uploadStateLabel}}</text>
+          <text class="upload-busy" wx:if="{{uploadingNow}}">处理中</text>
+        </view>
+      </view>
+
+      <view class="upload-grid">
+        <view class="upload-cell">
+          <text class="upload-label">最近成功</text>
+          <text class="upload-value">{{lastUploadText}}</text>
+        </view>
+        <view class="upload-cell">
+          <text class="upload-label">连续失败</text>
+          <text class="upload-value">{{failCount}} 次</text>
+        </view>
+        <view class="upload-cell">
+          <text class="upload-label">HTTP</text>
+          <text class="upload-value">{{lastHttpStatus || '暂无'}}</text>
+        </view>
+        <view class="upload-cell">
+          <text class="upload-label">重试</text>
+          <text class="upload-value">{{nextRetryText || '无'}}</text>
+        </view>
+      </view>
+
+      <view class="upload-error" wx:if="{{lastErrorText && lastErrorText !== '暂无'}}">
+        {{lastErrorText}}
+      </view>
+      <view class="upload-server">{{serverUrl}}</view>
     </view>
 
     <view class="battery-warn" wx:if="{{lowBattery}}">

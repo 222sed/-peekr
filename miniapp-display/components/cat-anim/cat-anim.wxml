@@ -1,0 +1,67 @@
+<view class="cat-root state-{{state}}">
+
+  <!-- 尾巴 -->
+  <view class="part tail">
+    <view class="part tail-tip"></view>
+  </view>
+
+  <!-- 后腿 -->
+  <view class="part leg-back-l"></view>
+  <view class="part leg-back-r"></view>
+
+  <!-- 身体 -->
+  <view class="part body">
+    <view class="part belly"></view>
+  </view>
+
+  <!-- 前腿+爪子 -->
+  <view class="part leg-front-l">
+    <view class="part paw-l"></view>
+  </view>
+  <view class="part leg-front-r">
+    <view class="part paw-r"></view>
+  </view>
+
+  <!-- 头部组 -->
+  <view class="part head-group">
+    <view class="part ear-l">
+      <view class="part ear-inner"></view>
+    </view>
+    <view class="part ear-r">
+      <view class="part ear-inner"></view>
+    </view>
+    <view class="part head">
+      <view class="part head-patch-l"></view>
+      <view class="part head-patch-r"></view>
+      <!-- 眼睛 -->
+      <view class="part eye eye-l">
+        <view class="part pupil pupil-l"></view>
+        <view class="part shine shine-l"></view>
+      </view>
+      <view class="part eye eye-r">
+        <view class="part pupil pupil-r"></view>
+        <view class="part shine shine-r"></view>
+      </view>
+      <!-- 口鼻 -->
+      <view class="part muzzle">
+        <view class="part nose"></view>
+        <view class="part mouth"></view>
+      </view>
+      <!-- 胡须 -->
+      <view class="part whisker wl1"></view>
+      <view class="part whisker wl2"></view>
+      <view class="part whisker wl3"></view>
+      <view class="part whisker wr1"></view>
+      <view class="part whisker wr2"></view>
+      <view class="part whisker wr3"></view>
+    </view>
+  </view>
+
+  <!-- play 状态的粒子效果 -->
+  <view class="sparks" wx:if="{{state === 'play'}}">
+    <view class="spark spark1"></view>
+    <view class="spark spark2"></view>
+    <view class="spark spark3"></view>
+  </view>
+
+</view>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cat Play Preview</title>
+<style>
+body { background: #D9EBFF; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+
+.cat {
+  position: relative;
+  width: 200px;
+  height: 240px;
+}
+
+/* ── 尾巴（从身体右侧翘起） */
+.tail {
+  position: absolute;
+  bottom: 48px;
+  right: -18px;
+  width: 18px;
+  height: 90px;
+  background: #1E1E1E;
+  border-radius: 9px 9px 4px 4px;
+  transform-origin: 50% 100%;
+  animation: tailWag 0.4s ease-in-out infinite alternate;
+}
+.tail-tip {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1E1E1E;
+}
+@keyframes tailWag {
+  from { transform: rotate(-22deg); }
+  to   { transform: rotate(22deg); }
+}
+
+/* ── 后腿左 */
+.leg-back-l {
+  position: absolute;
+  bottom: 0;
+  left: 18px;
+  width: 28px;
+  height: 64px;
+  background: #1E1E1E;
+  border-radius: 14px 14px 10px 10px;
+  transform-origin: 50% 0%;
+  animation: backLegL 0.5s ease-in-out infinite alternate;
+}
+@keyframes backLegL {
+  from { transform: rotate(-18deg); }
+  to   { transform: rotate(8deg); }
+}
+
+/* ── 后腿右 */
+.leg-back-r {
+  position: absolute;
+  bottom: 0;
+  right: 18px;
+  width: 28px;
+  height: 64px;
+  background: #1E1E1E;
+  border-radius: 14px 14px 10px 10px;
+  transform-origin: 50% 0%;
+  animation: backLegR 0.5s ease-in-out infinite alternate;
+}
+@keyframes backLegR {
+  from { transform: rotate(18deg); }
+  to   { transform: rotate(-8deg); }
+}
+
+/* ── 身体 */
+.body {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 106px;
+  background: #1E1E1E;
+  border-radius: 50%;
+  animation: bodyBounce 0.5s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+}
+@keyframes bodyBounce {
+  from { transform: translateX(-50%) scaleY(1) translateY(0); }
+  to   { transform: translateX(-50%) scaleY(0.94) translateY(4px); }
+}
+
+/* ── 肚皮 */
+.belly {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62px;
+  height: 72px;
+  background: white;
+  border-radius: 50%;
+}
+
+/* ── 前腿左（举起） */
+.leg-front-l {
+  position: absolute;
+  bottom: 90px;
+  left: 8px;
+  width: 24px;
+  height: 70px;
+  background: #E0E0E0;
+  border-radius: 12px;
+  transform-origin: 50% 0%;
+  animation: frontLegL 0.5s ease-in-out infinite alternate;
+}
+.paw-l {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 18px;
+  background: #E0E0E0;
+  border-radius: 9px;
+}
+@keyframes frontLegL {
+  from { transform: rotate(-55deg); }
+  to   { transform: rotate(-35deg); }
+}
+
+/* ── 前腿右（举起） */
+.leg-front-r {
+  position: absolute;
+  bottom: 90px;
+  right: 8px;
+  width: 24px;
+  height: 70px;
+  background: #E0E0E0;
+  border-radius: 12px;
+  transform-origin: 50% 0%;
+  animation: frontLegR 0.5s ease-in-out infinite alternate;
+}
+.paw-r {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 18px;
+  background: #E0E0E0;
+  border-radius: 9px;
+}
+@keyframes frontLegR {
+  from { transform: rotate(55deg); }
+  to   { transform: rotate(35deg); }
+}
+
+/* ── 头部组 */
+.head-group {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 130px;
+  animation: headBob 0.5s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+}
+@keyframes headBob {
+  from { transform: translateX(-50%) translateY(0) rotate(-4deg); }
+  to   { transform: translateX(-50%) translateY(4px) rotate(4deg); }
+}
+
+/* ── 耳朵左 */
+.ear-l {
+  position: absolute;
+  top: 4px;
+  left: 14px;
+  width: 0; height: 0;
+  border-left: 17px solid transparent;
+  border-right: 17px solid transparent;
+  border-bottom: 38px solid #1E1E1E;
+  transform: rotate(-14deg);
+  transform-origin: 50% 100%;
+  animation: earL 0.5s ease-in-out infinite alternate;
+}
+.ear-l::after {
+  content: '';
+  position: absolute;
+  left: -9px; top: 8px;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 22px solid #FFA6A6;
+}
+@keyframes earL {
+  from { transform: rotate(-20deg); }
+  to   { transform: rotate(-10deg); }
+}
+
+/* ── 耳朵右 */
+.ear-r {
+  position: absolute;
+  top: 4px;
+  right: 14px;
+  width: 0; height: 0;
+  border-left: 17px solid transparent;
+  border-right: 17px solid transparent;
+  border-bottom: 38px solid #1E1E1E;
+  transform: rotate(14deg);
+  transform-origin: 50% 100%;
+  animation: earR 0.5s ease-in-out infinite alternate;
+}
+.ear-r::after {
+  content: '';
+  position: absolute;
+  left: -9px; top: 8px;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 22px solid #FFA6A6;
+}
+@keyframes earR {
+  from { transform: rotate(20deg); }
+  to   { transform: rotate(10deg); }
+}
+
+/* ── 头 */
+.head {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 116px;
+  height: 100px;
+  border-radius: 50%;
+  background: #DFDFDF;
+  overflow: hidden;
+}
+
+/* 头顶黑色色块 */
+.head::before {
+  content: '';
+  position: absolute;
+  top: -14px; left: -18px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: #1E1E1E;
+  transform: rotate(28deg);
+}
+.head::after {
+  content: '';
+  position: absolute;
+  top: -14px; right: -18px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: #1E1E1E;
+  transform: rotate(-28deg);
+}
+
+/* ── 眼睛左 */
+.eye-l, .eye-r {
+  position: absolute;
+  top: 32px;
+  width: 22px; height: 24px;
+  border-radius: 50%;
+  background: white;
+  overflow: hidden;
+  z-index: 2;
+  animation: eyeBlink 3s ease-in-out infinite;
+}
+.eye-l { left: 16px; }
+.eye-r { right: 16px; }
+@keyframes eyeBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+.pupil-l, .pupil-r {
+  position: absolute;
+  left: 50%; top: 3px;
+  transform: translateX(-50%);
+  width: 12px; height: 18px;
+  border-radius: 50%;
+  background: #1E1E1E;
+}
+.shine-l, .shine-r {
+  position: absolute;
+  left: 4px; top: 3px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── 口鼻 */
+.muzzle {
+  position: absolute;
+  bottom: 14px;
+  left: 50%; transform: translateX(-50%);
+  width: 52px; height: 30px;
+  border-radius: 14px;
+  background: white;
+  z-index: 2;
+}
+.nose {
+  position: absolute;
+  top: 5px; left: 50%;
+  transform: translateX(-50%);
+  width: 10px; height: 8px;
+  background: #1E1E1E;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  transform: translateX(-50%) rotate(180deg);
+}
+.mouth {
+  position: absolute;
+  bottom: 5px; left: 50%;
+  transform: translateX(-50%);
+  width: 22px; height: 10px;
+  border-bottom: 2px solid #1E1E1E;
+  border-left: 2px solid #1E1E1E;
+  border-right: 2px solid #1E1E1E;
+  border-radius: 0 0 11px 11px;
+}
+
+/* ── 胡须 */
+.whisker {
+  position: absolute;
+  height: 1.5px;
+  background: #AAAAAA;
+  border-radius: 2px;
+  z-index: 2;
+}
+.wl1 { left: -44px; top: 48px; width: 42px; transform: rotate(-6deg); }
+.wl2 { left: -44px; top: 55px; width: 42px; }
+.wl3 { left: -44px; top: 62px; width: 42px; transform: rotate(6deg); }
+.wr1 { right: -44px; top: 48px; width: 42px; transform: rotate(6deg); }
+.wr2 { right: -44px; top: 55px; width: 42px; }
+.wr3 { right: -44px; top: 62px; width: 42px; transform: rotate(-6deg); }
+
+/* sparkle 粒子 */
+.sparks { position: absolute; top: 0; left: 0; width: 200px; height: 240px; pointer-events: none; }
+.spark {
+  position: absolute;
+  border-radius: 50%;
+}
+.spark1 { width: 10px; height: 10px; background: #4CAF7D; top: 30px; left: 10px; animation: spark 0.9s ease-in-out infinite; }
+.spark2 { width: 8px; height: 8px; background: #4A90D9; top: 10px; right: 20px; animation: spark 0.9s 0.2s ease-in-out infinite; }
+.spark3 { width: 7px; height: 7px; background: #E8943A; bottom: 60px; right: 4px; animation: spark 0.9s 0.4s ease-in-out infinite; }
+@keyframes spark {
+  0%, 100% { opacity: 0.2; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+</style>
+</head>
+<body>
+<div class="cat">
+  <!-- tail -->
+  <div class="tail"><div class="tail-tip"></div></div>
+  <!-- back legs -->
+  <div class="leg-back-l"></div>
+  <div class="leg-back-r"></div>
+  <!-- body -->
+  <div class="body">
+    <div class="belly"></div>
+  </div>
+  <!-- front legs -->
+  <div class="leg-front-l"><div class="paw-l"></div></div>
+  <div class="leg-front-r"><div class="paw-r"></div></div>
+  <!-- head -->
+  <div class="head-group">
+    <div class="ear-l"></div>
+    <div class="ear-r"></div>
+    <div class="head">
+      <div class="eye-l"><div class="pupil-l"></div><div class="shine-l"></div></div>
+      <div class="eye-r"><div class="pupil-r"></div><div class="shine-r"></div></div>
+      <div class="muzzle">
+        <div class="nose"></div>
+        <div class="mouth"></div>
+      </div>
+      <div class="whisker wl1"></div>
+      <div class="whisker wl2"></div>
+      <div class="whisker wl3"></div>
+      <div class="whisker wr1"></div>
+      <div class="whisker wr2"></div>
+      <div class="whisker wr3"></div>
+    </div>
+  </div>
+  <!-- sparks -->
+  <div class="sparks">
+    <div class="spark spark1"></div>
+    <div class="spark spark2"></div>
+    <div class="spark spark3"></div>
+  </div>
+</div>
+</body>
+</html>

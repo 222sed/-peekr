@@ -10,6 +10,8 @@ import time
 OFFLINE_AFTER_SECONDS = 60
 MAX_HISTORY_EVENTS = 10000
 DB_PATH = Path(__file__).with_name("peekr.db")
+FEEDING_CONFIRM_SECONDS = 15
+FEEDING_END_GRACE_SECONDS = 20
 
 _store = {
     "state": "unknown",
@@ -22,6 +24,10 @@ _store = {
     "battery_level": None,
     "is_charging": False,
     "activity_score": 0,
+    "feeding_candidate_started_at": None,
+    "active_feeding_event_id": None,
+    "active_feeding_started_at": None,
+    "last_food_seen_at": None,
 }
 
 _state_buffer: deque = deque(maxlen=2)
@@ -66,6 +72,20 @@ def _connect_db() -> sqlite3.Connection:
     connection.execute(
         "CREATE INDEX IF NOT EXISTS idx_activity_samples_at ON activity_samples(at)"
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS feeding_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at REAL NOT NULL,
+            ended_at REAL,
+            duration_seconds REAL,
+            confirmed INTEGER NOT NULL DEFAULT 1
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_feeding_events_started_at ON feeding_events(started_at)"
+    )
     return connection
 
 
@@ -91,6 +111,68 @@ def _load_history_events(start: float, end: float) -> list[dict]:
     finally:
         connection.close()
     return [{"state": row[0], "at": float(row[1])} for row in rows]
+
+
+def _create_feeding_event(started_at: float) -> int:
+    connection = _connect_db()
+    try:
+        cursor = connection.execute(
+            "INSERT INTO feeding_events(started_at, confirmed) VALUES (?, 1)",
+            (started_at,),
+        )
+        connection.commit()
+        return int(cursor.lastrowid)
+    finally:
+        connection.close()
+
+
+def _finish_feeding_event(event_id: int, ended_at: float) -> None:
+    connection = _connect_db()
+    try:
+        row = connection.execute(
+            "SELECT started_at FROM feeding_events WHERE id = ? AND ended_at IS NULL",
+            (event_id,),
+        ).fetchone()
+        if not row:
+            return
+        started_at = float(row[0])
+        duration = max(0.0, ended_at - started_at)
+        connection.execute(
+            """
+            UPDATE feeding_events
+            SET ended_at = ?, duration_seconds = ?
+            WHERE id = ? AND ended_at IS NULL
+            """,
+            (ended_at, duration, event_id),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def _load_feeding_events(start: float, end: float) -> list[dict]:
+    connection = _connect_db()
+    try:
+        rows = connection.execute(
+            """
+            SELECT id, started_at, ended_at, duration_seconds
+            FROM feeding_events
+            WHERE started_at >= ? AND started_at <= ?
+            ORDER BY started_at
+            """,
+            (start, end),
+        ).fetchall()
+    finally:
+        connection.close()
+    return [
+        {
+            "id": int(row[0]),
+            "started_at": float(row[1]),
+            "ended_at": None if row[2] is None else float(row[2]),
+            "duration_seconds": None if row[3] is None else float(row[3]),
+        }
+        for row in rows
+    ]
 
 
 _initial_connection = _connect_db()
@@ -172,6 +254,56 @@ def set_food_remaining(value: Optional[int], calibrated: bool) -> None:
         _store["food_calibrated"] = calibrated
 
 
+def get_feeding_feedback(
+    zone_configured: bool,
+    cat_detected: bool,
+    in_zone: bool,
+    zone_frames: int = 0,
+) -> dict:
+    with _lock:
+        now = time.time()
+        candidate_started_at = _store.get("feeding_candidate_started_at")
+        active_event_id = _store.get("active_feeding_event_id")
+        active_started_at = _store.get("active_feeding_started_at")
+
+        candidate_seconds = (
+            max(0.0, now - float(candidate_started_at))
+            if candidate_started_at
+            else 0.0
+        )
+        active_seconds = (
+            max(0.0, now - float(active_started_at))
+            if active_started_at
+            else 0.0
+        )
+        remaining_seconds = max(0.0, FEEDING_CONFIRM_SECONDS - candidate_seconds)
+
+        if not zone_configured:
+            status = "zone_missing"
+        elif not cat_detected:
+            status = "cat_missing"
+        elif active_event_id:
+            status = "confirmed"
+        elif in_zone:
+            status = "candidate"
+        else:
+            status = "outside"
+
+        return {
+            "zone_set": bool(zone_configured),
+            "cat_detected": bool(cat_detected),
+            "in_zone": bool(in_zone),
+            "zone_frames": int(zone_frames or 0),
+            "candidate_seconds": round(candidate_seconds, 1),
+            "confirm_seconds": FEEDING_CONFIRM_SECONDS,
+            "remaining_seconds": round(remaining_seconds, 1),
+            "confirmed": bool(active_event_id),
+            "active": bool(active_event_id),
+            "active_seconds": round(active_seconds, 1),
+            "status": status,
+        }
+
+
 def record_activity(score: float) -> None:
     score = max(0.0, min(100.0, float(score)))
     now = time.time()
@@ -208,6 +340,48 @@ def _today_activity_score(start: float, end: float) -> int:
     return round(float(row[0])) if row and row[0] is not None else 0
 
 
+def _feeding_summary(start: float, end: float, now: float) -> dict:
+    events = _load_feeding_events(start, end)
+    active_event_id = _store.get("active_feeding_event_id")
+    active_started_at = _store.get("active_feeding_started_at")
+
+    normalized = []
+    for event in events:
+        ended_at = event["ended_at"]
+        duration = event["duration_seconds"]
+        is_active = active_event_id == event["id"] and ended_at is None
+        if is_active:
+            ended_at = None
+            duration = max(0.0, now - float(event["started_at"]))
+        normalized.append({
+            "id": event["id"],
+            "started_at": event["started_at"],
+            "ended_at": ended_at,
+            "duration_seconds": round(float(duration or 0)),
+            "active": bool(is_active),
+        })
+
+    if active_event_id and active_started_at and not any(item["id"] == active_event_id for item in normalized):
+        normalized.append({
+            "id": int(active_event_id),
+            "started_at": float(active_started_at),
+            "ended_at": None,
+            "duration_seconds": round(max(0.0, now - float(active_started_at))),
+            "active": True,
+        })
+
+    normalized.sort(key=lambda item: item["started_at"])
+    latest = normalized[-1] if normalized else None
+    total_duration = round(sum(float(item["duration_seconds"] or 0) for item in normalized))
+    return {
+        "count": len(normalized),
+        "latest": latest,
+        "active": next((item for item in normalized if item["active"]), None),
+        "total_duration_seconds": total_duration,
+        "events": normalized[-6:],
+    }
+
+
 def update_frame_info(
     device_id: str = "",
     captured_at: Optional[float] = None,
@@ -241,7 +415,41 @@ def set_state(state: str, confidence: float = 1.0) -> str:
         if not _history or previous != smoothed:
             _history.append({"state": smoothed, "at": now})
             _save_history_event(smoothed, now)
+        _update_feeding_state_machine(smoothed, now)
         return smoothed
+
+
+def _update_feeding_state_machine(current_state: str, now: float) -> None:
+    if current_state == "food":
+        _store["last_food_seen_at"] = now
+        if _store.get("active_feeding_event_id"):
+            return
+        candidate_started_at = _store.get("feeding_candidate_started_at")
+        if candidate_started_at is None:
+            _store["feeding_candidate_started_at"] = now
+            return
+        if now - float(candidate_started_at) >= FEEDING_CONFIRM_SECONDS:
+            event_id = _create_feeding_event(float(candidate_started_at))
+            _store["active_feeding_event_id"] = event_id
+            _store["active_feeding_started_at"] = float(candidate_started_at)
+        return
+
+    candidate_started_at = _store.get("feeding_candidate_started_at")
+    active_event_id = _store.get("active_feeding_event_id")
+    last_food_seen_at = _store.get("last_food_seen_at")
+
+    if active_event_id:
+        if last_food_seen_at and now - float(last_food_seen_at) >= FEEDING_END_GRACE_SECONDS:
+            _finish_feeding_event(int(active_event_id), float(last_food_seen_at))
+            _store["active_feeding_event_id"] = None
+            _store["active_feeding_started_at"] = None
+            _store["feeding_candidate_started_at"] = None
+            _store["last_food_seen_at"] = None
+        return
+
+    if candidate_started_at and last_food_seen_at and now - float(last_food_seen_at) >= FEEDING_END_GRACE_SECONDS:
+        _store["feeding_candidate_started_at"] = None
+        _store["last_food_seen_at"] = None
 
 
 def get_prev_box() -> Optional[list]:
@@ -275,6 +483,8 @@ def get_today_summary() -> dict:
         now = time.time()
         start = _start_of_today(now)
         offline = _is_offline(now)
+        if offline:
+            _update_feeding_state_machine("unknown", now)
         last_frame_at = float(_store.get("last_frame_at") or 0)
         battery = _store.get("battery_level")
     events = _load_history_events(start, now)
@@ -309,13 +519,6 @@ def get_today_summary() -> dict:
                 "pct": round(seconds / total_seconds * 100, 2),
             })
 
-    food_count = 0
-    last_state = None
-    for event in events:
-        if event["state"] == "food" and last_state != "food":
-            food_count += 1
-        last_state = event["state"]
-
     tracked_seconds = sum(
         duration_by_state[name]
         for name in ("sleep", "play", "food", "dream")
@@ -324,14 +527,16 @@ def get_today_summary() -> dict:
     sleep_pct = round(duration_by_state["sleep"] / stats_total * 100)
     play_pct = round(duration_by_state["play"] / stats_total * 100)
     activity_score = _today_activity_score(start, now)
+    feeding = _feeding_summary(start, now, now)
     return {
         "metrics": {
             "battery": battery,
-            "food_count": food_count,
+            "food_count": feeding["count"],
             "sleep_pct": sleep_pct,
             "play_pct": play_pct,
             "activity_score": activity_score,
         },
         "timeline": segments or [{"type": "idle", "pct": 100}],
         "event_count": len(events),
+        "feeding": feeding,
     }
