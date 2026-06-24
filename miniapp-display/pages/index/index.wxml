@@ -1,27 +1,22 @@
 <view class="page">
 
-  <!-- 顶部状态胶囊 -->
   <view class="header">
-    <view class="pill" style="border-color: {{stateColor}}">
-      <view class="pill-dot" style="background: {{stateColor}}"></view>
-      <text class="pill-text">{{stateLabel}}</text>
+    <view>
+      <view class="pill" style="border-color: {{stateColor}}">
+        <view class="pill-dot" style="background: {{stateColor}}"></view>
+        <text class="pill-text">{{stateLabel}}</text>
+      </view>
+      <text class="device-info" wx:if="{{deviceInfo}}">{{deviceInfo}}</text>
     </view>
     <text class="last-updated" wx:if="{{lastUpdated}}">{{lastUpdated}} 更新</text>
   </view>
 
-  <!-- 主体：猫咪 + 指标 -->
   <view class="body-row">
-
-    <!-- 猫咪动画区 -->
     <view class="cat-col">
       <view class="cat-wrap state-{{state}}">
-        <!-- sleep -->
         <image wx:if="{{state === 'sleep'}}" class="cat-img cat-sleep" src="/assets/cat-sleep.svg" mode="aspectFit"/>
-        <!-- play -->
         <image wx:elif="{{state === 'play'}}" class="cat-img cat-play" src="/assets/cat-play.svg" mode="aspectFit"/>
-        <!-- food -->
         <image wx:elif="{{state === 'food'}}" class="cat-img cat-food" src="/assets/cat-food.svg" mode="aspectFit"/>
-        <!-- dream / unknown fallback -->
         <image wx:else class="cat-img cat-dream" src="/assets/cat-dream.svg" mode="aspectFit"/>
       </view>
       <text class="cat-name">小灰</text>
@@ -32,7 +27,6 @@
       <text class="cat-desc">{{stateDesc}}</text>
     </view>
 
-    <!-- 指标进度条 -->
     <view class="metrics-col">
       <view class="metric-row" wx:for="{{metrics}}" wx:key="key">
         <view class="metric-label-row">
@@ -40,14 +34,12 @@
           <text class="metric-val">{{item.value}}{{item.unit}}</text>
         </view>
         <view class="metric-bar">
-          <view class="metric-fill {{item.colorClass}}" style="width:{{item.value}}%"></view>
+          <view class="metric-fill {{item.colorClass}}" style="width:{{item.barValue}}%"></view>
         </view>
       </view>
     </view>
-
   </view>
 
-  <!-- 时间轴 -->
   <view class="timeline-wrap">
     <view class="tl-header">
       <text class="tl-title">今日时间轴</text>
@@ -63,9 +55,8 @@
     </view>
   </view>
 
-  <!-- 离线提示 -->
   <view class="offline-banner" wx:if="{{!connected}}">
-    摄像头未连接 — 请检查采集端小程序
+    采集端未连接，请检查采集小程序是否保持监控
   </view>
 
 </view>

@@ -56,6 +56,14 @@ page {
   color: var(--text-light);
 }
 
+.device-info {
+  display: block;
+  margin-top: 10rpx;
+  padding-left: 8rpx;
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
 /* ── 主体 ── */
 .body-row {
   display: flex;

@@ -10,6 +10,11 @@ venv/
 *.pt
 *.onnx
 
+# Runtime data
+*.db
+*.db-shm
+*.db-wal
+
 # OS
 .DS_Store
 Thumbs.db

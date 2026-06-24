@@ -1,15 +1,100 @@
 <view class="page">
 
-  <camera class="camera" device-position="back" flash="off" wx:if="{{running}}"></camera>
+  <camera
+    class="camera"
+    device-position="back"
+    flash="off"
+    wx:if="{{cameraVisible}}"
+  ></camera>
   <view class="camera-placeholder" wx:else>
     <text class="placeholder-text">摄像头未启动</text>
   </view>
 
-  <!-- 带框预览图，叠在摄像头画面上 -->
-  <image wx:if="{{previewSrc}}" class="preview-overlay" src="{{previewSrc}}" mode="aspectFill"></image>
+  <image
+    wx:if="{{previewSrc && running && !calibrationStep}}"
+    class="preview-overlay"
+    src="{{previewSrc}}"
+    mode="aspectFill"
+  ></image>
 
-  <view class="overlay">
+  <view
+    wx:if="{{running && hasFeedingZone && showFeedingZone && !calibrationStep}}"
+    class="feeding-zone-live"
+    style="{{liveFeedingZoneStyle}}"
+  >
+    <view class="feeding-zone-live-label">食盆区域</view>
+  </view>
 
+  <view
+    class="settings-button"
+    wx:if="{{!calibrationStep && !showSetupPrompt}}"
+    bindtap="onToggleSettings"
+  >
+    <text class="settings-icon">⚙</text>
+  </view>
+
+  <view
+    class="settings-backdrop"
+    wx:if="{{settingsOpen && !calibrationStep}}"
+    bindtap="onCloseSettings"
+  ></view>
+
+  <view class="settings-menu" wx:if="{{settingsOpen && !calibrationStep}}">
+    <view class="settings-title">采集设置</view>
+
+    <view class="settings-item" bindtap="onOpenFeedingSetup">
+      <view class="settings-item-main">
+        <text class="settings-item-icon">🍚</text>
+        <view>
+          <view class="settings-item-label">
+            {{hasFeedingZone ? '重新设置食盆区域' : '设置食盆区域'}}
+          </view>
+          <view class="settings-item-desc">
+            {{hasFeedingZone ? '摄像头移动后需要重新校准' : '提高进食状态识别准确率'}}
+          </view>
+        </view>
+      </view>
+      <text class="settings-arrow">›</text>
+    </view>
+
+    <view class="settings-item" wx:if="{{hasFeedingZone}}" bindtap="onToggleFeedingZone">
+      <view class="settings-item-main">
+        <text class="settings-item-icon">▣</text>
+        <view>
+          <view class="settings-item-label">
+            {{showFeedingZone ? '隐藏区域标记' : '显示区域标记'}}
+          </view>
+          <view class="settings-item-desc">只影响画面显示，不影响进食识别</view>
+        </view>
+      </view>
+      <view class="settings-switch {{showFeedingZone ? 'on' : ''}}">
+        <view class="settings-switch-dot"></view>
+      </view>
+    </view>
+
+    <view class="settings-item" wx:if="{{hasFeedingZone}}" bindtap="onOpenFoodCalibration">
+      <view class="settings-item-main">
+        <text class="settings-item-icon">%</text>
+        <view>
+          <view class="settings-item-label">校准猫粮余量</view>
+          <view class="settings-item-desc">依次拍摄空碗和满碗，估算剩余百分比</view>
+        </view>
+      </view>
+      <text class="settings-arrow">›</text>
+    </view>
+
+    <view class="settings-item danger" wx:if="{{hasFeedingZone}}" bindtap="onClearFeedingZone">
+      <view class="settings-item-main">
+        <text class="settings-item-icon">×</text>
+        <view>
+          <view class="settings-item-label">清除进食区域</view>
+          <view class="settings-item-desc">清除后暂停进食状态识别</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="overlay" wx:if="{{!calibrationStep}}">
     <view class="status-row">
       <view class="status-dot {{statusType}}"></view>
       <text class="status-text">{{statusText}}</text>
@@ -18,10 +103,22 @@
     <view class="meta-row">
       <text class="meta-item">已上传 {{frameCount}} 帧</text>
       <text class="meta-item">每 3 秒一帧</text>
+      <text class="meta-item">{{battery}}%{{isCharging ? ' · 充电中' : ''}}</text>
+      <text class="meta-item zone-ready" wx:if="{{hasFeedingZone}}">食盆区域已设置</text>
+      <text class="meta-item zone-missing" wx:else>进食识别未设置</text>
     </view>
 
     <view class="battery-warn" wx:if="{{lowBattery}}">
       ⚠️ 电量低于 20%，请插电后使用
+    </view>
+
+    <view class="quality-warn" wx:if="{{qualityWarning}}">
+      <text class="quality-warn-icon">!</text>
+      <text>{{qualityWarning}}</text>
+    </view>
+
+    <view class="reconnect-hint" wx:if="{{reconnectText}}">
+      {{reconnectText}}
     </view>
 
     <view class="btn-row">
@@ -29,7 +126,107 @@
         {{running ? '停止监控' : '开始监控'}}
       </view>
     </view>
+  </view>
 
+  <view class="setup-mask" wx:if="{{showSetupPrompt}}">
+    <view class="setup-card">
+      <view class="setup-icon">🍚</view>
+      <view class="setup-title">先设置食盆区域</view>
+      <view class="setup-desc">
+        设置后，只有猫咪在食盆附近持续停留时，系统才会判断为进食。
+      </view>
+      <view class="setup-note">请先固定手机位置，设置完成后尽量不要移动摄像头。</view>
+      <view class="setup-actions">
+        <view class="setup-skip" bindtap="onSkipSetup">稍后设置</view>
+        <view class="setup-primary" bindtap="onOpenFeedingSetup">现在设置</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="calibration-camera" wx:if="{{calibrationStep === 'camera'}}">
+    <view class="calibration-top">
+      <view class="calibration-title">拍摄校准照片</view>
+      <view class="calibration-desc">固定好手机，让食盆完整出现在画面中。</view>
+    </view>
+    <view class="camera-guide">
+      <view class="guide-corner guide-tl"></view>
+      <view class="guide-corner guide-tr"></view>
+      <view class="guide-corner guide-bl"></view>
+      <view class="guide-corner guide-br"></view>
+      <text>建议食盆位于画面下半部分</text>
+    </view>
+    <view class="calibration-bottom">
+      <view class="calibration-cancel" bindtap="onCancelCalibration">取消</view>
+      <view class="shutter" bindtap="onTakeCalibrationPhoto">
+        <view class="shutter-inner"></view>
+      </view>
+      <view class="calibration-placeholder">固定机位</view>
+    </view>
+  </view>
+
+  <view
+    class="food-calibration-camera"
+    wx:if="{{calibrationStep === 'food-empty' || calibrationStep === 'food-full'}}"
+  >
+    <view class="calibration-top">
+      <view class="calibration-title">{{foodCalibrationTitle}}</view>
+      <view class="calibration-desc">{{foodCalibrationDesc}}</view>
+    </view>
+    <view class="food-zone-guide" style="{{foodLevelZoneStyle}}">
+      <text>猫粮测量区域</text>
+    </view>
+    <view class="calibration-bottom">
+      <view class="calibration-cancel" bindtap="onCancelCalibration">取消</view>
+      <view class="shutter" bindtap="onTakeFoodCalibrationPhoto">
+        <view class="shutter-inner {{foodCalibrationUploading ? 'busy' : ''}}"></view>
+      </view>
+      <view class="calibration-placeholder">
+        {{calibrationStep === 'food-empty' ? '空碗' : '满碗'}}
+      </view>
+    </view>
+  </view>
+
+  <view class="calibration-editor" wx:if="{{calibrationStep === 'edit'}}">
+    <view class="editor-header">
+      <view class="editor-title">框选食盆区域</view>
+      <view class="editor-desc">拖动方框调整位置，拖动右下角调整大小。</view>
+    </view>
+
+    <view class="calibration-stage" style="{{calibrationStageStyle}}">
+      <image
+        class="calibration-photo"
+        src="{{calibrationImage}}"
+        mode="scaleToFill"
+        bindload="onCalibrationImageLoad"
+      ></image>
+      <view
+        class="feeding-zone-editor"
+        style="{{feedingZoneStyle}}"
+        catchtouchstart="onZoneTouchStart"
+        catchtouchmove="onZoneTouchMove"
+        catchtouchend="onZoneTouchEnd"
+        catchtouchcancel="onZoneTouchEnd"
+      >
+        <view class="feeding-zone-label">食盆区域</view>
+        <view
+          class="resize-handle"
+          catchtouchstart="onResizeTouchStart"
+          catchtouchmove="onZoneTouchMove"
+          catchtouchend="onZoneTouchEnd"
+          catchtouchcancel="onZoneTouchEnd"
+        ></view>
+      </view>
+    </view>
+
+    <view class="editor-tip">
+      请框住食盆，并包含食盆上方约一个猫头的空间。
+    </view>
+
+    <view class="editor-actions">
+      <view class="editor-action secondary" bindtap="onRetakeCalibration">重新拍摄</view>
+      <view class="editor-action secondary" bindtap="onResetZone">重置方框</view>
+      <view class="editor-action primary" bindtap="onSaveFeedingZone">保存区域</view>
+    </view>
   </view>
 
 </view>
