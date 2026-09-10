@@ -67,14 +67,19 @@
   <block wx:else>
     <view class="home-page dashboard-page">
       <view class="dash-header">
-        <view>
-          <view class="dash-brand">
-            <text>Peekr</text>
-            <view class="brand-dot"></view>
+        <view class="dash-identity">
+          <view class="dash-brand-lockup">
+            <text class="dash-brand-name">Peekr</text>
+            <view class="dash-brand-tail"></view>
           </view>
-          <text class="dash-subtitle">猫咪状态监测</text>
+          <text class="dash-name">{{catProfile.name}}</text>
         </view>
-        <button class="dash-setting" bindtap="onOpenSettings">⚙</button>
+        <button class="dash-setting" aria-label="打开展示设置" bindtap="onOpenSettings">
+          <view class="settings-glyph" aria-hidden="true">
+            <view class="settings-line settings-line-top"></view>
+            <view class="settings-line settings-line-bottom"></view>
+          </view>
+        </button>
       </view>
 
       <view class="settings-mask" wx:if="{{settingsOpen}}" bindtap="onCloseSettings"></view>
@@ -84,10 +89,10 @@
             <view class="settings-popover-title">展示设置</view>
             <view class="settings-popover-desc">用于单独验证展示端界面</view>
           </view>
-          <view class="settings-popover-close" bindtap="onCloseSettings">×</view>
+          <button class="settings-popover-close" aria-label="关闭设置" bindtap="onCloseSettings">×</button>
         </view>
 
-        <view class="settings-option" bindtap="onToggleTestMode">
+        <view class="settings-option" aria-role="switch" aria-checked="{{testMode}}" bindtap="onToggleTestMode">
           <view class="settings-option-main">
             <view class="settings-option-icon">T</view>
             <view>
@@ -103,69 +108,91 @@
         </view>
       </view>
 
-      <view class="hero-card">
-        <view class="hero-meta">
-          <view class="hero-pill">
-            <text wx:if="{{lastUpdated}}">更新于 {{lastUpdated}}</text>
-            <text wx:else>等待画面</text>
+      <view class="hero-card status-{{statusVariant}}">
+        <view class="hero-copy">
+          <view class="hero-status-line">
+            <view class="hero-status-mark"></view>
+            <text>{{testMode ? '演示数据' : stateLabel}}</text>
           </view>
-          <view class="hero-pill test" wx:if="{{testMode}}">
-            <view class="hero-dot"></view>
-            <text>测试模式</text>
-          </view>
-          <view class="hero-pill {{connected ? 'online' : 'offline'}}">
-            <view class="hero-dot"></view>
-            <text>{{connected ? '在线' : '离线'}}</text>
-          </view>
+          <text class="hero-state">{{heroTitle}}</text>
+          <text class="hero-desc">{{stateDesc}}</text>
+          <text class="hero-freshness">{{freshnessText}}</text>
+          <view class="status-trail"></view>
         </view>
 
-        <view class="hero-cat state-{{state}}">
-          <view class="cat-aura"></view>
-          <cat-anim state="{{state}}" />
-          <view class="cat-anim sleep-anim">
-            <text>Z</text>
-            <text>z</text>
-            <text>z</text>
+        <view class="overview-stage">
+          <view class="overview-copy">
+            <text class="overview-label">今日记录概况</text>
+            <text class="overview-note">基于已记录时段 · 非健康评分</text>
           </view>
-          <view class="cat-anim play-anim">
-            <text></text>
-            <text></text>
-            <text></text>
+          <view class="overview-arc arc-outer"></view>
+          <view class="overview-arc arc-middle"></view>
+          <view class="overview-arc arc-inner"></view>
+
+          <view class="hero-cat state-{{state}}">
+          <view wx:if="{{state === 'sleep'}}" class="animated-cat animated-cat-sleep">
+            <image class="cat-part sleep-tail" src="{{animatedCatParts.sleepTail}}" mode="aspectFit" />
+            <image class="cat-part sleep-body" src="{{animatedCatParts.sleepBody}}" mode="aspectFit" />
+            <image class="cat-part sleep-head" src="{{animatedCatParts.sleepHead}}" mode="aspectFit" />
+            <view class="sleep-zzz z1">Z</view>
+            <view class="sleep-zzz z2">Z</view>
+            <view class="sleep-zzz z3">Z</view>
           </view>
-          <view class="cat-anim food-anim">
-            <view class="food-bowl">
-              <view class="food-bowl-rim"></view>
+
+          <view wx:elif="{{state === 'play'}}" class="animated-cat animated-cat-play">
+            <image class="cat-part cat-tail" src="{{animatedCatParts.tail}}" mode="aspectFit" />
+            <image class="cat-part cat-body" src="{{animatedCatParts.body}}" mode="aspectFit" />
+            <image class="cat-part play-head" src="{{animatedCatParts.playHead}}" mode="aspectFit" />
+            <image class="cat-part play-paw" src="{{animatedCatParts.playPaw}}" mode="aspectFit" />
+            <image class="cat-part play-paw-right" src="{{animatedCatParts.playPaw}}" mode="aspectFit" />
+            <image class="cat-part yarn-ball" src="{{animatedCatParts.yarn}}" mode="aspectFit" />
+            <view class="impact-lines"></view>
+          </view>
+
+          <view wx:elif="{{state === 'food'}}" class="animated-cat animated-cat-food">
+            <image class="cat-part cat-tail food-tail" src="{{animatedCatParts.tail}}" mode="aspectFit" />
+            <image class="cat-part cat-body food-body" src="{{animatedCatParts.body}}" mode="aspectFit" />
+            <image class="cat-part food-head" src="{{animatedCatParts.foodHead}}" mode="aspectFit" />
+            <image class="cat-part food-bowl-img" src="{{animatedCatParts.foodBowl}}" mode="aspectFit" />
+            <view class="munch-bit bit1"></view>
+            <view class="munch-bit bit2"></view>
+          </view>
+
+          <view wx:else class="animated-cat animated-cat-groom">
+            <image class="cat-part cat-tail" src="{{animatedCatParts.tail}}" mode="aspectFit" />
+            <image class="cat-part cat-body" src="{{animatedCatParts.body}}" mode="aspectFit" />
+            <image class="cat-part cat-paw" src="{{animatedCatParts.paw}}" mode="aspectFit" />
+            <view class="cat-head-wrap">
+              <image class="cat-part cat-head" src="{{animatedCatParts.head}}" mode="aspectFit" />
+              <view class="cat-tongue"></view>
             </view>
-            <view class="food-dot one"></view>
-            <view class="food-dot two"></view>
           </view>
-          <view class="cat-anim dream-anim">
-            <text>…</text>
           </view>
         </view>
-
-        <view class="hero-state-row">
-          <view class="state-indicator" style="background:{{stateColor}}"></view>
-          <text class="hero-state">{{stateLabel}}</text>
-        </view>
-        <text class="hero-desc">{{catProfile.name}} · {{stateDesc}}</text>
       </view>
 
       <view class="status-panel">
         <view class="section-head">
-          <text class="section-title">状态栏</text>
+          <view>
+            <text class="section-title">今天的三项记录</text>
+            <text class="section-caption">满格不代表更好，暂无参考时只展示记录</text>
+          </view>
           <text class="section-note">{{deviceNote}}</text>
         </view>
 
-        <view class="status-row" wx:for="{{metrics}}" wx:key="key">
-          <view class="status-main">
-            <text class="status-icon">{{item.icon}}</text>
-            <text class="status-label">{{item.label}}</text>
+        <view class="behavior-row {{item.unavailable ? 'unavailable' : ''}}" wx:for="{{metrics}}" wx:key="key">
+          <view class="behavior-head">
+            <view class="behavior-name">
+              <view class="behavior-mark {{item.colorClass}}" aria-hidden="true"></view>
+              <text class="behavior-label">{{item.label}}</text>
+            </view>
+            <text class="behavior-value">{{item.valueText}}</text>
           </view>
-          <view class="status-bar">
-            <view class="status-fill {{item.colorClass}}" style="width:{{item.barValue}}%"></view>
+          <view class="behavior-track">
+            <view class="behavior-range"></view>
+            <view class="behavior-fill {{item.colorClass}}" style="width:{{item.barValue}}%"></view>
           </view>
-          <text class="status-value">{{item.value}}{{item.unit}}</text>
+          <text class="behavior-helper">{{item.helper}}</text>
         </view>
       </view>
 
@@ -183,19 +210,21 @@
           ></view>
         </view>
         <view class="timeline-legend">
-          <text>🟣 睡眠</text>
-          <text>🟢 活跃</text>
-          <text>🟠 进食</text>
-          <text>🔵 发呆</text>
+          <view><text class="legend-mark sleep"></text><text>休息</text></view>
+          <view><text class="legend-mark play"></text><text>活动</text></view>
+          <view><text class="legend-mark food"></text><text>进食</text></view>
+          <view><text class="legend-mark dream"></text><text>低活动</text></view>
         </view>
       </view>
 
-      <view class="notice-card" wx:if="{{!connected}}">
-        采集端未连接，请检查采集小程序是否保持监控
+      <view class="notice-card status-{{statusVariant}}" wx:if="{{statusVariant === 'offline' || statusVariant === 'server-error' || statusVariant === 'stale'}}">
+        <text class="notice-title">{{heroTitle}}</text>
+        <text>{{stateDesc}}</text>
       </view>
 
-      <view class="customize-entry" bindtap="onEditCatProfile">
-        自定义 {{catProfile.name}} 的形象 →
+      <view class="customize-entry" aria-role="button" bindtap="onEditCatProfile">
+        <text>自定义 {{catProfile.name}} 的形象</text>
+        <text class="entry-arrow">→</text>
       </view>
     </view>
   </block>

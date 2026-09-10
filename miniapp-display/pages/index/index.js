@@ -3,7 +3,7 @@ const CAT_PROFILE_KEY = 'peekr_display_cat_profile_v1'
 const TEST_MODE_KEY = 'peekr_display_test_mode_v1'
 
 const STATE_CONFIG = {
-  sleep: { label: '睡眠中', color: '#9B7EC8', desc: '保持安静，正在休息' },
+  sleep: { label: '推测休息', color: '#9B7EC8', desc: '画面显示它保持安静，可能正在休息' },
   play: { label: '活动中', color: '#4CAF7D', desc: '活动明显，精力充沛' },
   food: { label: '进食中', color: '#E8943A', desc: '停留在食盆区域，可能正在进食' },
   dream: { label: '发呆中', color: '#4A90D9', desc: '清醒但活动较少' },
@@ -18,6 +18,20 @@ const BODY_SVG = {
 }
 
 const DASHBOARD_CAT_SVG = '/assets/cat-black-white-3.svg'
+const ANIMATED_CAT_PARTS = {
+  tail: '/assets/animated-cat-tail.svg',
+  body: '/assets/animated-cat-body.svg',
+  paw: '/assets/animated-cat-paw.svg',
+  head: '/assets/animated-cat-head.svg',
+  sleepTail: '/assets/animated-cat-sleep-tail.svg',
+  sleepBody: '/assets/animated-cat-sleep-body.svg',
+  sleepHead: '/assets/animated-cat-sleep-head.svg',
+  playHead: '/assets/animated-cat-play-head.svg',
+  playPaw: '/assets/animated-cat-play-paw.svg',
+  yarn: '/assets/animated-cat-yarn.svg',
+  foodHead: '/assets/animated-cat-food-head.svg',
+  foodBowl: '/assets/animated-cat-food-bowl.svg',
+}
 
 const CATEGORY_LIST = [
   { key: 'bodyShape', label: '体型', icon: '🐾' },
@@ -84,10 +98,9 @@ const DEFAULT_PROFILE = {
 }
 
 const EMPTY_METRICS = [
-  { key: 'food', icon: '🍚', label: '猫粮余量', value: '--', unit: '', barValue: 0, colorClass: 'food' },
-  { key: 'play', icon: '🧶', label: '今日活动', value: 0, unit: '%', barValue: 0, colorClass: 'play' },
-  { key: 'sleep', icon: '💤', label: '今日睡眠', value: 0, unit: '%', barValue: 0, colorClass: 'sleep' },
-  { key: 'meal', icon: '🍽', label: '今日进食', value: 0, unit: '次', barValue: 0, colorClass: 'meal' },
+  { key: 'meal', label: '进食', valueText: '0 次', helper: '暂无参考区间', barValue: 0, colorClass: 'meal', unavailable: true },
+  { key: 'sleep', label: '休息', valueText: '--', helper: '记录不足，暂不比较', barValue: 0, colorClass: 'sleep', unavailable: true },
+  { key: 'play', label: '活动', valueText: '--', helper: '记录不足，暂不比较', barValue: 0, colorClass: 'play', unavailable: true },
 ]
 
 const DEMO_STATES = ['sleep', 'play', 'food', 'dream']
@@ -108,6 +121,17 @@ const formatDuration = (seconds) => {
   return `${minutes} 分 ${rest} 秒`
 }
 
+const clampPercentage = (value) => Math.max(0, Math.min(100, Number(value || 0)))
+
+const formatFreshness = (timestamp) => {
+  if (!timestamp) return '等待首次观察'
+  const elapsed = Math.max(0, Math.floor(Date.now() / 1000 - Number(timestamp)))
+  if (elapsed < 10) return '刚刚观察'
+  if (elapsed < 60) return `${elapsed} 秒前观察`
+  if (elapsed < 1800) return `${Math.floor(elapsed / 60)} 分钟前观察`
+  return `最后观察于 ${formatClock(timestamp)} · 已超过 30 分钟`
+}
+
 Page({
   data: {
     hasProfile: false,
@@ -117,6 +141,7 @@ Page({
     catProfile: { ...DEFAULT_PROFILE },
     catPreview: {},
     dashboardCatSrc: DASHBOARD_CAT_SVG,
+    animatedCatParts: ANIMATED_CAT_PARTS,
     selectedSummary: [],
     settingsOpen: false,
     testMode: false,
@@ -124,6 +149,9 @@ Page({
     stateLabel: '等待采集端',
     stateDesc: '正在等待采集端上传画面',
     stateColor: '#C4BDB0',
+    heroTitle: '等待猫咪近况',
+    freshnessText: '等待首次观察',
+    statusVariant: 'waiting',
     connected: false,
     lastUpdated: '',
     deviceInfo: '',
@@ -148,7 +176,7 @@ Page({
     this._loadCatProfile()
     this._loadTestMode()
     this._poll()
-    this._pollTimer = setInterval(() => this._poll(), 5000)
+    this._pollTimer = setInterval(() => this._poll(), 1000)
   },
 
   onShow() {
@@ -331,7 +359,10 @@ Page({
       state: 'unknown',
       stateLabel: '服务连接失败',
       stateDesc: message,
-      stateColor: '#C4BDB0',
+      stateColor: '#F05F65',
+      heroTitle: '服务连接失败',
+      freshnessText: this.data.lastUpdated ? `连接中断 · 上次记录 ${this.data.lastUpdated}` : '暂时无法取得观察记录',
+      statusVariant: 'server-error',
     })
   },
 
@@ -355,6 +386,7 @@ Page({
         metrics: {
           activity_score: demoState === 'play' ? 92 : 48,
           sleep_pct: demoState === 'sleep' ? 76 : 42,
+          play_pct: demoState === 'play' ? 58 : 24,
           food_count: 3,
         },
         feeding: {
@@ -389,12 +421,11 @@ Page({
     const feeding = today.feeding || {}
     const latestFeeding = feeding.latest || null
     const activeFeeding = feeding.active || null
-    const foodRemaining = data.food_remaining === null || data.food_remaining === undefined
-      ? null
-      : Math.max(0, Math.min(100, Number(data.food_remaining)))
-    const sleepPct = Number(summary.sleep_pct || 0)
-    const activityScore = Number(summary.activity_score || 0)
-    const feedingCount = Number(feeding.count || summary.food_count || 0)
+    const sleepPct = clampPercentage(summary.sleep_pct)
+    const playPct = clampPercentage(summary.play_pct)
+    const feedingCount = Math.max(0, Number(feeding.count || summary.food_count || 0))
+    const timeline = Array.isArray(today.timeline) && today.timeline.length ? today.timeline : [{ type: 'idle', pct: 100 }]
+    const hasRecordedBehavior = timeline.some((item) => item.type !== 'idle' && Number(item.pct || 0) > 0)
 
     let lastUpdated = ''
     if (timestamp > 0) {
@@ -407,11 +438,37 @@ Page({
       deviceInfo = `采集端 ${device.battery_level}%${device.is_charging ? ' · 充电中' : ''}`
     }
 
+    const stale = timestamp > 0 && Math.floor(Date.now() / 1000 - timestamp) > 1800
+    const sourceState = STATE_CONFIG[data.state] ? data.state : 'unknown'
+    const displayState = offline || stale ? 'unknown' : sourceState
+    const statusVariant = offline ? 'offline' : stale ? 'stale' : sourceState === 'unknown' ? 'not-found' : 'live'
+    const heroTitle = offline
+      ? '采集设备已离线'
+      : stale
+        ? '暂无近期记录'
+        : sourceState === 'unknown'
+          ? `暂未发现${this.data.catProfile.name}`
+          : sourceState === 'sleep'
+            ? `${this.data.catProfile.name}正在休息`
+            : sourceState === 'play'
+              ? `${this.data.catProfile.name}正在活动`
+              : sourceState === 'food'
+                ? `${this.data.catProfile.name}可能正在进食`
+                : `${this.data.catProfile.name}活动较少`
+    const stateDesc = offline
+      ? '超过 60 秒没有收到新画面'
+      : stale
+        ? '最后记录已不再视为实时状态'
+        : cfg.desc
+
     this.setData({
-      state: offline ? 'unknown' : data.state,
-      stateLabel: offline ? '采集端离线' : cfg.label,
-      stateDesc: offline ? '超过 60 秒没有收到新画面' : cfg.desc,
-      stateColor: offline ? '#C4BDB0' : cfg.color,
+      state: displayState,
+      stateLabel: offline ? '采集端离线' : stale ? '记录已过期' : cfg.label,
+      stateDesc,
+      stateColor: offline || stale ? '#F05F65' : cfg.color,
+      heroTitle,
+      freshnessText: formatFreshness(timestamp),
+      statusVariant,
       connected: !offline,
       lastUpdated,
       deviceInfo,
@@ -425,27 +482,34 @@ Page({
       },
       metrics: [
         {
-          key: 'food',
-          icon: '🍚',
-          label: data.food_calibrated ? '猫粮余量' : '猫粮未校准',
-          value: foodRemaining === null ? '--' : foodRemaining,
-          unit: foodRemaining === null ? '' : '%',
-          barValue: foodRemaining === null ? 0 : foodRemaining,
-          colorClass: 'food',
-        },
-        { key: 'play', icon: '🧶', label: '今日活动', value: activityScore, unit: '%', barValue: activityScore, colorClass: 'play' },
-        { key: 'sleep', icon: '💤', label: '今日睡眠', value: sleepPct, unit: '%', barValue: sleepPct, colorClass: 'sleep' },
-        {
           key: 'meal',
-          icon: '🍽',
-          label: activeFeeding ? '正在进食' : '今日进食',
-          value: feedingCount,
-          unit: '次',
-          barValue: Math.min(100, feedingCount * 25),
+          label: activeFeeding ? '进食中' : '进食',
+          valueText: `${feedingCount} 次`,
+          helper: '仅记录次数 · 暂无参考区间',
+          barValue: 0,
           colorClass: 'meal',
+          unavailable: true,
+        },
+        {
+          key: 'sleep',
+          label: '休息',
+          valueText: hasRecordedBehavior ? `${sleepPct}%` : '--',
+          helper: hasRecordedBehavior ? '已记录时段占比' : '记录不足，暂不比较',
+          barValue: hasRecordedBehavior ? sleepPct : 0,
+          colorClass: 'sleep',
+          unavailable: !hasRecordedBehavior,
+        },
+        {
+          key: 'play',
+          label: '活动',
+          valueText: hasRecordedBehavior ? `${playPct}%` : '--',
+          helper: hasRecordedBehavior ? '已记录时段占比' : '记录不足，暂不比较',
+          barValue: hasRecordedBehavior ? playPct : 0,
+          colorClass: 'play',
+          unavailable: !hasRecordedBehavior,
         },
       ],
-      timeline: Array.isArray(today.timeline) && today.timeline.length ? today.timeline : [{ type: 'idle', pct: 100 }],
+      timeline,
     })
   },
 })

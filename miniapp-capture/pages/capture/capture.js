@@ -1,5 +1,5 @@
 const SERVER_URL = getApp().globalData.serverUrl
-const CAPTURE_INTERVAL_MS = 3000
+const CAPTURE_INTERVAL_MS = 1000
 const UPLOAD_TIMEOUT_MS = 25000
 const RETRY_DELAYS_MS = [3000, 6000, 12000, 20000]
 const FEEDING_ZONE_STORAGE_KEY = 'peekr_feeding_zone_v1'
@@ -16,7 +16,7 @@ const DEFAULT_FEEDING_ZONE = {
 
 const STATE_LABELS = {
   sleep: '睡眠中',
-  play: '玩耍中',
+  play: '活动中',
   food: '进食中',
   dream: '发呆中',
   unknown: '侦测中',

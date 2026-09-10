@@ -406,6 +406,9 @@ def update_frame_time() -> None:
 def set_state(state: str, confidence: float = 1.0) -> str:
     with _lock:
         _state_buffer.append(state)
+        if state == "play" and _store["state"] == "sleep":
+            _state_buffer.clear()
+            _state_buffer.append(state)
         smoothed = _smooth()
         now = time.time()
         previous = _store["state"]

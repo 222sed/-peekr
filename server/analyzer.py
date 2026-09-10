@@ -2,6 +2,7 @@ import base64
 import io
 import math
 import statistics
+import time
 from collections import deque
 from typing import Optional
 import numpy as np
@@ -345,6 +346,7 @@ def analyze(
     boxes = results[0].boxes
 
     if boxes is None or len(boxes) == 0:
+        state._store.update(analysis_at=None, still_seconds=0.0, moving_frames=0)
         food_remaining = estimate_food_remaining(
             img_np, feeding_zone, food_calibrations or {}
         )
@@ -391,8 +393,17 @@ def analyze(
     if cat_area_ratio < MIN_CAT_AREA_RATIO:
         quality["warnings"].append("cat_too_small")
 
-    prev_box = state.get_prev_box()
+    now = time.monotonic()
+    previous_at = state._store.get("analysis_at")
+    elapsed = now - previous_at if previous_at is not None else 0.0
+    continuous = 0 < elapsed <= 8.0
+    state._store["analysis_at"] = now
+    if not continuous:
+        state._store.update(motion_history=[], previous_pose={}, still_seconds=0.0,
+                            moving_frames=0, feeding_zone_count=0)
+    prev_box = state.get_prev_box() if continuous else None
     motion_pixels, motion_ratio = _motion_score(box, prev_box)
+    motion_ratio = motion_ratio * 3.0 / max(elapsed, 0.5) if continuous else 0.0
     compact = _compactness(box)
 
     motion_history = state._store.get("motion_history", [])
@@ -410,6 +421,17 @@ def analyze(
 
     pose = _pose_features(img_np, box)
     previous_pose = state._store.get("previous_pose", {})
+    pose_changed = continuous and any(
+        key in pose and key in previous_pose
+        and abs(pose[key] - previous_pose[key]) >= threshold
+        for key, threshold in (("nose_rel_y", 0.08), ("body_span", 0.08))
+    )
+    moving = continuous and (motion_ratio > MOTION_STILL_RATIO or pose_changed)
+    state._store["moving_frames"] = state._store.get("moving_frames", 0) + 1 if moving else 0
+    still_seconds = state._store.get("still_seconds", 0.0)
+    still_seconds = still_seconds + elapsed if continuous and not moving else 0.0
+    state._store["still_seconds"] = still_seconds
+    still_count = STILL_FRAMES_SLEEP if still_seconds >= 24.0 else 0
     activity_score = _activity_score(motion_ratio, pose, previous_pose)
     state._store["previous_pose"] = pose
     state.record_activity(activity_score)
@@ -443,6 +465,8 @@ def analyze(
         feeding_zone_count,
         pose,
     )
+    if state._store["moving_frames"] >= 2 and raw_state != "food":
+        raw_state, confidence = "play", 0.65
     print(
         f"[debug] detect={detection_confidence:.2f} "
         f"motion={motion_ratio:.3f} smooth={stable_motion:.3f} "
@@ -450,7 +474,7 @@ def analyze(
         f"feeding_zone={feeding_zone_count} nose_in_zone={nose_in_feeding_zone} "
         f"activity={activity_score} pose={pose} -> {raw_state}"
     )
-    state.set_state(raw_state, confidence)
+    confirmed_state = state.set_state(raw_state, confidence)
     state.set_prev_box(box)
     state._store["still_count"] = still_count
     state._store["feeding_zone_count"] = feeding_zone_count
@@ -461,7 +485,7 @@ def analyze(
         zone_frames=feeding_zone_count,
     )
 
-    preview_b64 = _draw_box(img, box, raw_state, confidence)
+    preview_b64 = _draw_box(img, box, confirmed_state, confidence)
 
     return {
         **state.get_state(),
