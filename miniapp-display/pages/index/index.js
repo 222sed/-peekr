@@ -34,12 +34,12 @@ const ANIMATED_CAT_PARTS = {
 }
 
 const CATEGORY_LIST = [
-  { key: 'bodyShape', label: '体型', icon: '🐾' },
-  { key: 'coatPattern', label: '花色', icon: '🎨' },
-  { key: 'bodyColor', label: '主体', icon: '🐱' },
-  { key: 'bellyColor', label: '肚皮', icon: '🤍' },
-  { key: 'eyeColor', label: '眼睛', icon: '👁' },
-  { key: 'accessory', label: '配饰', icon: '🎀' },
+  { key: 'bodyShape', label: '体型' },
+  { key: 'coatPattern', label: '花色' },
+  { key: 'bodyColor', label: '主体' },
+  { key: 'bellyColor', label: '肚皮' },
+  { key: 'eyeColor', label: '眼睛' },
+  { key: 'accessory', label: '配饰' },
 ]
 
 const OPTION_MAP = {
@@ -79,11 +79,11 @@ const OPTION_MAP = {
     { value: 'grayBlue', label: '灰蓝色', swatch: '#8EAFC6' },
   ],
   accessory: [
-    { value: 'none', label: '无配饰', desc: '保持原样', emoji: '—' },
-    { value: 'bell', label: '铃铛', desc: '项圈铃铛', emoji: '🔔' },
-    { value: 'bow', label: '领结', desc: '可爱领结', emoji: '🎀' },
-    { value: 'scarf', label: '围巾', desc: '保暖围巾', emoji: '🧣' },
-    { value: 'hat', label: '小帽子', desc: '装饰帽', emoji: '🎩' },
+    { value: 'none', label: '无配饰', desc: '保持原样', mark: '无' },
+    { value: 'bell', label: '铃铛', desc: '项圈铃铛', mark: '铃' },
+    { value: 'bow', label: '领结', desc: '可爱领结', mark: '结' },
+    { value: 'scarf', label: '围巾', desc: '保暖围巾', mark: '巾' },
+    { value: 'hat', label: '小帽子', desc: '装饰帽', mark: '帽' },
   ],
 }
 
@@ -164,6 +164,7 @@ Page({
       durationText: '暂无',
       activeText: '无',
     },
+    hasTimelineData: false,
     timeline: [{ type: 'idle', pct: 100 }],
   },
 
@@ -211,7 +212,7 @@ Page({
     if (action === 'info') {
       wx.showModal({
         title: '猫咪形象',
-        content: '当前版本优先保证界面稳定。体型使用你提供的 SVG 原型，花色、颜色、配饰先作为配置保存和标签展示。后续如果提供分层素材，可以做到真正精准换装。',
+        content: '选择最接近的体型、花色和配饰即可。当前版本会保存全部选择，首页形象暂以体型为主进行展示。',
         showCancel: false,
       })
       return
@@ -227,6 +228,7 @@ Page({
     const profile = this._normalizedProfile(this.data.catProfile)
     wx.setStorageSync(CAT_PROFILE_KEY, profile)
     this._applyProfile(profile, true)
+    wx.showToast({ title: '形象已保存', icon: 'success' })
   },
 
   onEditCatProfile() {
@@ -250,6 +252,11 @@ Page({
       title: testMode ? '测试模式已开启' : '测试模式已关闭',
       icon: 'none',
     })
+  },
+
+  onRetryConnection() {
+    this._poll()
+    wx.showToast({ title: '正在重新获取近况', icon: 'none' })
   },
 
   _loadCatProfile() {
@@ -509,6 +516,7 @@ Page({
           unavailable: !hasRecordedBehavior,
         },
       ],
+      hasTimelineData: hasRecordedBehavior,
       timeline,
     })
   },

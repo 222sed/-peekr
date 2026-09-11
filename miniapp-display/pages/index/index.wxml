@@ -3,15 +3,20 @@
   <view wx:if="{{!hasProfile}}" class="designer">
     <view class="designer-stage">
       <view class="designer-topbar">
-        <view class="name-editor">
-          <text class="name-label">MY CAT</text>
-          <input class="name-input" value="{{catProfile.name}}" maxlength="8" placeholder="小灰" bindinput="onNameInput" />
+        <view class="designer-heading">
+          <view class="dash-brand-lockup">
+            <text class="dash-brand-name">Peekr</text>
+            <view class="dash-brand-tail"></view>
+          </view>
+          <text class="designer-title">创建猫咪形象</text>
+          <text class="designer-subtitle">先选择最接近的外观，之后可以随时调整</text>
         </view>
+        <button class="designer-info" data-action="info" bindtap="onToolTap">说明</button>
+      </view>
 
-        <view class="stage-actions">
-          <button class="round-action" data-action="info" bindtap="onToolTap">i</button>
-          <button class="round-action" data-action="camera" bindtap="onToolTap">📷</button>
-        </view>
+      <view class="name-editor">
+        <text class="name-label">猫咪名字</text>
+        <input class="name-input" aria-label="猫咪名字" value="{{catProfile.name}}" maxlength="8" placeholder="例如：小灰" bindinput="onNameInput" />
       </view>
 
       <view class="cat-showcase">
@@ -19,18 +24,22 @@
         <image class="cat-figure" src="{{catPreview.bodySrc}}" mode="aspectFit" />
       </view>
 
-      <button class="save-fab" data-action="save" bindtap="onToolTap">＋</button>
+      <view class="designer-actions">
+        <button class="designer-secondary" data-action="camera" bindtap="onToolTap">拍照生成</button>
+        <button class="designer-primary" data-action="save" bindtap="onToolTap">保存形象</button>
+      </view>
     </view>
 
-    <view class="designer-tabs">
+    <view class="designer-tabs" aria-role="tablist">
       <view
         wx:for="{{categories}}"
         wx:key="key"
         class="designer-tab {{activeCategory === item.key ? 'active' : ''}}"
+        aria-role="tab"
+        aria-selected="{{activeCategory === item.key}}"
         data-key="{{item.key}}"
         bindtap="onSelectCategory"
       >
-        <text class="designer-tab-icon">{{item.icon}}</text>
         <text class="designer-tab-label">{{item.label}}</text>
       </view>
     </view>
@@ -48,6 +57,8 @@
           wx:for="{{activeOptions}}"
           wx:key="value"
           class="asset-card {{item.selected ? 'active' : ''}}"
+          aria-role="button"
+          aria-label="{{item.label}}{{item.selected ? '，已选择' : ''}}"
           data-field="{{activeCategory}}"
           data-value="{{item.value}}"
           bindtap="onSelectOption"
@@ -55,7 +66,7 @@
           <view class="asset-preview">
             <image wx:if="{{item.previewSrc}}" class="asset-img" src="{{item.previewSrc}}" mode="aspectFit" />
             <view wx:elif="{{item.swatch}}" class="asset-swatch" style="background:{{item.swatch}}"></view>
-            <text wx:else class="asset-emoji">{{item.emoji}}</text>
+            <text wx:else class="asset-mark">{{item.mark}}</text>
           </view>
           <text class="asset-title">{{item.label}}</text>
           <text class="asset-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
@@ -83,22 +94,23 @@
       </view>
 
       <view class="settings-mask" wx:if="{{settingsOpen}}" bindtap="onCloseSettings"></view>
-      <view class="settings-popover" wx:if="{{settingsOpen}}">
+      <view class="settings-popover" wx:if="{{settingsOpen}}" aria-role="dialog" aria-label="展示设置">
         <view class="settings-popover-head">
           <view>
             <view class="settings-popover-title">展示设置</view>
-            <view class="settings-popover-desc">用于单独验证展示端界面</view>
+            <view class="settings-popover-desc">切换演示状态，不会写入真实记录</view>
           </view>
-          <button class="settings-popover-close" aria-label="关闭设置" bindtap="onCloseSettings">×</button>
+          <button class="settings-popover-close" aria-label="关闭设置" bindtap="onCloseSettings">
+            <view class="close-glyph" aria-hidden="true"></view>
+          </button>
         </view>
 
         <view class="settings-option" aria-role="switch" aria-checked="{{testMode}}" bindtap="onToggleTestMode">
           <view class="settings-option-main">
-            <view class="settings-option-icon">T</view>
             <view>
               <view class="settings-option-title">测试模式</view>
               <view class="settings-option-desc">
-                {{testMode ? '正在使用模拟状态轮换' : '不依赖采集端，模拟睡眠/活动/进食'}}
+                {{testMode ? '模拟状态每秒轮换，仅在本机显示' : '预览休息、活动、进食与低活动状态'}}
               </view>
             </view>
           </view>
@@ -199,9 +211,9 @@
       <view class="timeline-panel">
         <view class="section-head">
           <text class="section-title">今日时间轴</text>
-          <text class="section-note">00:00 - 现在</text>
+          <text class="section-note">{{hasTimelineData ? '00:00 - 现在' : '暂无时段'}}</text>
         </view>
-        <view class="timeline-track">
+        <view class="timeline-track" wx:if="{{hasTimelineData}}">
           <view
             wx:for="{{timeline}}"
             wx:key="index"
@@ -209,7 +221,8 @@
             style="width:{{item.pct}}%"
           ></view>
         </view>
-        <view class="timeline-legend">
+        <view class="timeline-empty" wx:else>采集到有效画面后，这里会显示今天的行为分布</view>
+        <view class="timeline-legend" wx:if="{{hasTimelineData}}">
           <view><text class="legend-mark sleep"></text><text>休息</text></view>
           <view><text class="legend-mark play"></text><text>活动</text></view>
           <view><text class="legend-mark food"></text><text>进食</text></view>
@@ -217,9 +230,12 @@
         </view>
       </view>
 
-      <view class="notice-card status-{{statusVariant}}" wx:if="{{statusVariant === 'offline' || statusVariant === 'server-error' || statusVariant === 'stale'}}">
-        <text class="notice-title">{{heroTitle}}</text>
-        <text>{{stateDesc}}</text>
+      <view class="notice-card status-{{statusVariant}}" aria-role="alert" wx:if="{{statusVariant === 'offline' || statusVariant === 'server-error' || statusVariant === 'stale'}}">
+        <view class="notice-copy">
+          <text class="notice-title">{{heroTitle}}</text>
+          <text>{{stateDesc}}</text>
+        </view>
+        <button class="notice-action" bindtap="onRetryConnection">{{statusVariant === 'stale' ? '立即刷新' : '重新连接'}}</button>
       </view>
 
       <view class="customize-entry" aria-role="button" bindtap="onEditCatProfile">
